@@ -640,16 +640,6 @@
   }
 }
 
-/* drop the "data" / "charts" label words → "Hyperliquid · TradingView"; both
-   links stay (license). The full block renders only above 900px — TIGHT_MQ
-   in App.tsx swaps in the compact TradingView-only link below that — so this
-   rule takes effect only if that gate moves below 720px. */
-@media (max-width: 720px) {
-  .attr-label {
-    display: none;
-  }
-}
-
 /* Tightest single-row topbar (641-900). This tier is flex-NOWRAP and the page
    is overflow-x:hidden, so anything past the viewport is gone rather than
    scrollable — silently, with no console noise — and the item at the right
