@@ -1,0 +1,34 @@
+name: CI
+
+# Lint, unit tests and the production build (typecheck + bundle + release
+# check) on every push to main and every pull request. A push to main deploys
+# through Workers Builds as soon as it lands, so for a direct push this run is
+# a fast notification rather than a gate; for a pull request it is the check
+# to wait for.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # no --deny-warnings: lint fails on errors only
+      - name: Lint
+        run: npm run lint
+      - name: Unit tests
+        run: npm test
+      - name: Build (typecheck + bundle + release check)
+        run: npm run build

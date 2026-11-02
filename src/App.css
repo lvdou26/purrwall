@@ -1,0 +1,3619 @@
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  /* viewport-fit=cover (index.html): keep chrome clear of the notch /
+     status bar in installed-app + landscape modes; env() is 0 in every
+     ordinary browser context, so this costs nothing there */
+  padding-top: env(safe-area-inset-top);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* ─── top bar ─── */
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 42px;
+  padding: 0 14px;
+  /* positioning context for the corner live-dot */
+  position: relative;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.brand {
+  font-family: var(--mono);
+  font-weight: 700;
+  letter-spacing: 2px;
+  font-size: 14px;
+}
+
+/* The realtime badge: "● LIVE" in the topbar's top-right corner padding —
+   the broadcast idiom, unmistakably the app's own live-feed signal.
+   Absolute: ZERO row width at the zero-slack tiers. The healthy dot carries
+   a radar-ping ring (a live stream), not an opacity blink (which reads as a
+   notification). */
+.live-badge {
+  position: absolute;
+  top: 3px;
+  right: 5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 10px;
+}
+
+/* ≤640 the transient ✓ save / ↻ update pills pin to this exact corner
+   (order:1 on direct-child share-btns) — the WORD steps out for them, the
+   dot stays (clock-steps-out idiom), and the badge never intercepts a tap
+   (its hover tooltip is unreachable on touch anyway). Otherwise the 33px
+   word overprints the pill and steals its top-right taps. */
+@media (max-width: 640px) {
+  .live-badge {
+    pointer-events: none;
+  }
+  .topbar.has-pill .live-word {
+    display: none;
+  }
+}
+
+.live-word {
+  font: 700 8px var(--mono);
+  letter-spacing: 1px;
+  color: var(--accent);
+  opacity: 0.85;
+}
+
+.live-dot {
+  position: relative;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+
+.live-dot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1px solid var(--accent);
+  animation: live-ping 2.4s ease-out infinite;
+}
+
+.live-badge.warn .live-dot {
+  background: #d0a53a;
+  animation: live-blink 0.9s ease-in-out infinite;
+}
+
+.live-badge.warn .live-dot::after,
+.live-badge.err .live-dot::after {
+  animation: none;
+  border: none;
+}
+
+.live-badge.err .live-dot {
+  background: var(--down, #e05563);
+}
+
+@keyframes live-ping {
+  0% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  70%,
+  100% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
+@keyframes live-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-dot,
+  .live-dot::after {
+    animation: none !important;
+  }
+}
+
+/* watch-dialog overlay checklist rows */
+.wm-check {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font: 12px var(--mono);
+  color: var(--text-dim);
+  padding: 2px 0;
+  cursor: pointer;
+}
+
+.wm-check input {
+  accent-color: var(--accent);
+}
+
+.wm-check-master {
+  color: var(--text);
+}
+
+/* per-chip overlay eye: dimmed when that wallet isn't drawn */
+.pv-chip-eye {
+  opacity: 0.35;
+}
+
+.pv-chip-eye.on {
+  opacity: 1;
+}
+
+.brand-accent {
+  color: var(--accent);
+}
+
+.grid-presets {
+  display: flex;
+  gap: 4px;
+}
+
+/* The walls select stretches with the ACTIVE wall's name, so a long name (a
+   long address-named wall, say) silently overruns the zero-slack tiers;
+   uncapped it can push the license-required TradingView link offscreen at
+   ANY width (a 64-char name beats every tier). Cap the CLOSED control
+   everywhere ≥641 (an upper bound at 1479 would re-open the overflow exactly
+   where the pos-tab appears); the full name still reads in the opened list —
+   the closed label is a menu handle, not a data readout. The ≤640 two-row
+   topbar wraps and needs no cap. */
+@media (min-width: 641px) {
+  .wall-presets {
+    max-width: 150px;
+    text-overflow: ellipsis;
+  }
+}
+
+/* Positions-tab width gate: the single-row WALL topbar fits the third tab
+   (with the clock aboard) only from 1480px in English; below that it
+   overruns, invisibly clipped under overflow-x hidden. The ≤640 two-row
+   topbar and the list/positions rows wrap or run sparse and need no gate.
+   Below the gate the walls menu's "positions…" entry is the route in.
+   Re-measure before touching. */
+@media (min-width: 641px) and (max-width: 1479px) {
+  .topbar.v-wall .pos-tab {
+    display: none;
+  }
+}
+
+.preset-btn {
+  font-family: var(--mono);
+  font-size: 11px;
+  min-width: 26px;
+  height: 24px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+}
+
+.preset-btn:hover {
+  color: var(--text);
+  border-color: var(--text-dim);
+}
+
+.preset-btn.active {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: rgba(53, 208, 165, 0.08);
+}
+
+/* ⌖ linked-crosshairs toggle sits beside the interval group */
+.xh-toggle {
+  font-size: 15px;
+  line-height: 1;
+}
+
+/* rows×cols grid picker */
+.grid-btn-wrap {
+  position: relative;
+}
+
+.grid-pop {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 120;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+
+.grid-pop-matrix {
+  display: grid;
+  gap: 4px;
+}
+
+.grid-pop-cell {
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--panel);
+  cursor: pointer;
+}
+
+.grid-pop-cell.on {
+  background: rgba(53, 208, 165, 0.35);
+  border-color: var(--accent);
+}
+
+.grid-pop-label {
+  margin-top: 8px;
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text);
+}
+
+
+.grid-pop-cols-label {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+/* Phone wall panel: count × columns + live phone-shaped preview — the
+   desktop shape matrix never renders on narrow (count is the only real
+   dimension there; cols is a desktop view preference). FIXED + edge
+   margins, not button-anchored: an absolute popover overflows a 375px
+   screen (still a .grid-btn-wrap child, so outside-tap close works). */
+.grid-pop-mobile {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  top: calc(env(safe-area-inset-top) + 92px);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: start;
+}
+
+.grid-pop-mobile .gpm-controls {
+  width: auto;
+}
+
+.gpm-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 128px;
+}
+
+.gpm-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.gpm-chips .preset-btn {
+  min-width: 34px;
+  min-height: 30px;
+}
+
+.gpm-phone {
+  position: relative;
+  width: 84px;
+  height: 148px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 5px 4px 0;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.gpm-grid {
+  display: grid;
+  gap: 2px;
+}
+
+.gpm-cell {
+  background: rgba(53, 208, 165, 0.28);
+  border-radius: 2px;
+}
+
+.gpm-fade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 30px;
+  background: linear-gradient(transparent, var(--panel-2));
+  pointer-events: none;
+}
+
+.gpm-sum {
+  grid-column: 1 / -1;
+  margin-top: 0;
+}
+
+/* share popover: QR of the current wall URL (computer → phone hop) */
+.share-pop {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 120;
+  width: 224px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  text-align: center;
+}
+
+.share-qr {
+  display: block;
+  width: 200px;
+  height: 200px;
+  border-radius: 4px;
+}
+
+/* accent action button (feedback Send) */
+.accent-btn {
+  display: block;
+  text-align: center;
+  font: 600 12px var(--mono);
+  color: #0a0e14;
+  background: var(--accent);
+  border-radius: 4px;
+  padding: 7px 10px;
+  text-decoration: none;
+}
+
+.accent-btn:hover {
+  filter: brightness(1.1);
+}
+
+/* small caption under a popover's content (share QR) */
+.pop-note {
+  margin: 6px 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--text-dim);
+}
+
+/* the walls control carries a real name — brighten it so “where am I”
+   reads at a glance */
+.wall-presets.named {
+  color: var(--text);
+}
+
+.tz-select {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text-dim);
+  cursor: pointer;
+}
+
+.tz-select:hover {
+  color: var(--text);
+  border-color: var(--text-dim);
+}
+
+.wall-presets {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text-dim);
+  cursor: pointer;
+}
+
+.wall-presets:hover {
+  color: var(--text);
+  border-color: var(--text-dim);
+}
+
+.share-btn {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 4px 12px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+}
+
+.share-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.share-btn.done {
+  color: var(--up);
+  border-color: var(--up);
+}
+
+/* "new version" pill: accent, no motion — informs, never interrupts */
+.update-pill {
+  color: var(--accent);
+  border-color: rgba(53, 208, 165, 0.4);
+  white-space: nowrap;
+}
+
+/* save button: appears only with unsaved edits — filled so it reads as
+   the primary action of the moment, not just another chrome button */
+.save-view {
+  color: #0a0e14;
+  background: var(--accent);
+  border-color: var(--accent);
+  white-space: nowrap;
+}
+
+.save-view:hover {
+  color: #0a0e14;
+  filter: brightness(1.1);
+}
+
+/* ↺ back to the saved version — sits left of ✓ save, outlined so the filled
+   pill stays the primary action; icon-only, the tooltip carries the words */
+.discard-view {
+  padding: 4px 9px;
+  font-size: 13px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* The pair must never cost more than the single worded "✓ save" pill the
+   gated tiers are budgeted for (Invariant 8): below 1650px the word yields,
+   and the two icon buttons together match that pill's width. */
+@media (max-width: 1650px) {
+  .save-view .save-word {
+    display: none;
+  }
+}
+
+/* The 641–900 single-row tier is budget-tight (Invariant 8): one pill fits,
+   the pair pushes the TradingView link offscreen. ↺ yields there — the
+   walls menu's "discard changes" entry stays the route on that tier.
+   Re-measure .topbar at 641px (English) before adding anything. */
+@media (min-width: 641px) and (max-width: 900px) {
+  .discard-view {
+    display: none;
+  }
+}
+
+.topbar-spacer {
+  flex: 1;
+}
+
+/* narrow windows: shed the market count, never the TradingView attribution
+   (license: every page keeps a visible link — canvas logos are off) */
+@media (max-width: 960px) {
+  .topbar-info {
+    display: none;
+  }
+}
+
+.topbar-info {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+/* Topbar clock: time to the second in the chart-axis timezone (follows the
+   tz dropdown). Mono digits keep the ticking seconds from jiggling the row.
+   Rendered only where the row can afford it — see the clockRoom* hooks in
+   App.tsx for the measured gates; the budget-tight 641–900 tier carries no
+   clock (Invariant 8). */
+.clock {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.clock-tz {
+  margin-left: 6px;
+  font-size: 10px;
+  opacity: 0.65;
+}
+
+.attribution {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+/* A transient ✓ save / ↻ update pill is in the row (.has-pill, App.tsx).
+   The pills spend the same slack the clock's width gates budget, and the
+   clock never yields to the ✓ save pill — so decoration yields instead:
+   the market count and the data/charts label words (both already shed on
+   narrower rows), plus the Hyperliquid half of the attribution — degrading
+   it to the same TradingView-only compact form the ≤900px tier already
+   ships. That fits the ✓ save pill + clock at every gated width; the wider
+   ↻ update pill still collides at the tightest widths, where the CLOCK
+   steps out (clockRoomUpd* in App.tsx), never the TradingView link. Above
+   1650px everything coexists untouched. */
+@media (max-width: 1650px) {
+  .topbar.has-pill .topbar-info,
+  .topbar.has-pill .attr-label,
+  .topbar.has-pill .attr-hl {
+    display: none;
+  }
+}
+
+/* Compact attribution (Invariant 8): rendered ≤900px (isTight gate in
+   App.tsx). On the narrow wall (≤640) it lands right-aligned on topbar row 2
+   next to the interval presets; between 641 and 900 the row does not wrap, so
+   `order: 4` simply keeps it last and the auto margin pins it to the right
+   edge. This link is what lets those wall cells run with the canvas
+   attributionLogo OFF — it must stay visible at every width in the range. */
+.attribution-nw {
+  order: 4;
+  margin-left: auto;
+  align-self: center;
+}
+
+/* the condensed topbar's "⋯" overflow menu (≤1330px; it takes docs too at
+   ≤900px) — same panel styling as .grid-pop */
+.more-pop {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 6px);
+  z-index: 120;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  padding: 10px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+
+/* forces row 2 to start on narrow screens; invisible (and inert) otherwise */
+.topbar-break {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .topbar {
+    flex-wrap: wrap;
+    height: auto;
+    min-height: 42px;
+    gap: 8px;
+    padding: 4px 10px;
+  }
+  /* row 1: brand · grid · ⋯ · spacer · share (docs folded into ⋯ at this
+     width; the direct-child .share-btn selector also catches the transient
+     save-view/update pills — same row is right for them); spacer keeps
+     order 0 so buttons push right */
+  .topbar > .share-btn {
+    order: 1;
+  }
+  .topbar-break {
+    display: block;
+    width: 100%;
+    height: 0;
+    order: 2;
+  }
+  /* row 2: the global interval presets + the compact TradingView link
+     (.attribution-nw, order 4) — the full attribution block does not
+     render at this width; the compact link carries the license so wall
+     cells drop the canvas logos, Invariant 8 */
+  .topbar .grid-presets {
+    order: 3;
+  }
+  .topbar .topbar-spacer {
+    order: 0;
+  }
+  .brand {
+    font-size: 14px;
+  }
+  .topbar .preset-btn {
+    padding: 3px 5px;
+    font-size: 11px;
+  }
+  .topbar .xh-toggle {
+    font-size: 15px;
+  }
+  /* ⌖ rides row 2 beside the presets (DOM order places it after them);
+     attribution-nw (order 4, auto margin) keeps the right edge */
+  .topbar > .xh-toggle {
+    order: 3;
+    min-width: 30px;
+  }
+}
+
+/* drop the "data" / "charts" label words → "Hyperliquid · TradingView"; both
+   links stay (license). The full block renders only above 900px — TIGHT_MQ
+   in App.tsx swaps in the compact TradingView-only link below that — so this
+   rule takes effect only if that gate moves below 720px. */
+@media (max-width: 720px) {
+  .attr-label {
+    display: none;
+  }
+}
+
+/* Tightest single-row topbar (641-900). This tier is flex-NOWRAP and the page
+   is overflow-x:hidden, so anything past the viewport is gone rather than
+   scrollable — silently, with no console noise — and the item at the right
+   edge is the TradingView attribution, which is a LICENSE requirement
+   (Invariant 8) and the reason wall cells run with attributionLogo off.
+   Unfolded, the row runs far past a 641px viewport with the link entirely
+   outside it. TIGHT_MQ in App.tsx folds docs + feedback into "⋯" and swaps
+   the full attribution block for the compact TradingView-only link; these
+   two rules reclaim the rest — the 16px gap costs ~50px across the row, and
+   the flex:1 spacer is pure dead weight (plus two gaps) at widths where there
+   is no free space to distribute anyway (.attribution-nw's auto margin pins
+   the link right without it). The tier stays budget-tight: re-measure
+   .topbar's scrollWidth against a 641px viewport in English (the binding
+   case) before adding anything here, an eighth interval chip included. */
+@media (min-width: 641px) and (max-width: 900px) {
+  .topbar {
+    gap: 8px; /* same as the ≤640 tier — this row is just as tight */
+  }
+  .topbar-spacer {
+    display: none;
+  }
+  /* The interval strip is the widest item on this row and the only one that
+     grows when INTERVALS does. Tightening its inter-chip gap buys back room
+     without shrinking a tap target or restyling the chips; without it the
+     row's slack would sit inside the margin of error for font fallback on
+     another platform. */
+  .topbar .grid-presets {
+    gap: 2px;
+  }
+}
+
+.hint-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 7px 14px;
+  background: rgba(53, 208, 165, 0.08);
+  border-bottom: 1px solid rgba(53, 208, 165, 0.3);
+  color: var(--text);
+  font-size: 12.5px;
+}
+
+.hint-bar b {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.hint-close {
+  margin-left: auto;
+  font-size: 16px;
+  line-height: 1;
+  color: var(--text-dim);
+  padding: 0 4px;
+}
+
+.hint-close:hover {
+  color: var(--text);
+}
+
+.docs-btn {
+  position: relative;
+}
+
+.unread-dot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.wn-toast {
+  position: fixed;
+  right: 14px;
+  bottom: 14px;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  max-width: calc(100vw - 28px);
+  background: rgba(53, 208, 165, 0.12);
+  border: 1px solid rgba(53, 208, 165, 0.4);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 12.5px;
+  cursor: pointer;
+  animation: wn-fade-in 0.25s ease;
+}
+
+.wn-toast:hover {
+  border-color: var(--accent);
+}
+
+/* warn variant: refusals/limits — must not wear the what's-new green */
+.wn-toast.warn {
+  background: rgba(240, 185, 11, 0.1);
+  border-color: rgba(240, 185, 11, 0.45);
+}
+
+.wn-toast.warn:hover {
+  border-color: #f0b90b;
+}
+
+.wn-toast-x {
+  color: var(--text-dim);
+  font-size: 14px;
+  padding: 0 2px;
+}
+
+.wn-toast-x:hover {
+  color: var(--text);
+}
+
+@keyframes wn-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Fired-alert toasts: a small stack in the wn-toast corner (which yields
+   while any of these are up). Direction wears the candle colors. */
+.alert-toasts {
+  position: fixed;
+  right: 14px;
+  bottom: 14px;
+  z-index: 97; /* over ptr-ind (90); the ≤640px offset below dodges the z-96 bottom bars */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.alert-toast {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  max-width: calc(100vw - 28px);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 12.5px;
+  cursor: pointer;
+  animation: wn-fade-in 0.25s ease;
+}
+
+.alert-toast.up {
+  background: rgba(31, 191, 117, 0.14);
+  border: 1px solid rgba(31, 191, 117, 0.5);
+}
+
+.alert-toast.down {
+  background: rgba(246, 70, 93, 0.14);
+  border: 1px solid rgba(246, 70, 93, 0.5);
+}
+
+.alert-toast-dir {
+  font-weight: 700;
+}
+
+.alert-toast.up .alert-toast-dir {
+  color: var(--up);
+}
+
+.alert-toast.down .alert-toast-dir {
+  color: var(--down);
+}
+
+/* narrow wall: the corner collides with the bottom-center bars (arrange bar,
+   card actions, z-96) — ride above the safe area, full width like list-toast */
+@media (max-width: 640px) {
+  .alert-toasts {
+    left: 12px;
+    right: 12px;
+    bottom: calc(60px + env(safe-area-inset-bottom, 0px));
+    align-items: stretch;
+  }
+}
+
+/* fired-alert flash: a brief ring on the cell whose level just traded */
+.cell.alert-flash-up {
+  animation: alert-flash-up 1.5s ease;
+}
+
+.cell.alert-flash-down {
+  animation: alert-flash-down 1.5s ease;
+}
+
+@keyframes alert-flash-up {
+  0%,
+  55% {
+    border-color: var(--up);
+    box-shadow: 0 0 0 1px var(--up), 0 0 16px rgba(31, 191, 117, 0.35);
+  }
+  100% {
+    border-color: var(--border);
+    box-shadow: none;
+  }
+}
+
+@keyframes alert-flash-down {
+  0%,
+  55% {
+    border-color: var(--down);
+    box-shadow: 0 0 0 1px var(--down), 0 0 16px rgba(246, 70, 93, 0.35);
+  }
+  100% {
+    border-color: var(--border);
+    box-shadow: none;
+  }
+}
+
+.cell-caret {
+  font-size: 8px;
+  color: var(--text-dim);
+  margin-left: 4px;
+  vertical-align: 1px;
+}
+
+.cell-market:hover .cell-caret {
+  color: var(--accent);
+}
+
+.banner {
+  padding: 8px 14px;
+  background: rgba(246, 70, 93, 0.12);
+  border-bottom: 1px solid rgba(246, 70, 93, 0.35);
+  color: var(--text);
+  font-size: 12px;
+}
+
+.banner.warn {
+  background: rgba(227, 179, 65, 0.1);
+  border-bottom-color: rgba(227, 179, 65, 0.35);
+}
+
+/* ─── chart grid ─── */
+
+.grid {
+  flex: 1;
+  display: grid;
+  gap: 5px;
+  padding: 5px;
+  /* installed-app mode: the last scrolled row must clear the home
+     indicator (0 everywhere else — see the .app safe-area note) */
+  padding-bottom: max(5px, env(safe-area-inset-bottom));
+  min-height: 0;
+  background: var(--bg);
+}
+
+/* Narrow screens: the wall scrolls instead of compressing (rows get a
+   readable fixed height from gridAutoRows in App.tsx). overscroll containment
+   keeps platform bounce/chaining from fighting the custom pull-to-refresh. */
+@media (max-width: 640px) {
+  .grid {
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+  }
+}
+
+/* Pull-to-refresh indicator (narrow wall): indicator-only pull — the grid
+   never translates (a transform would become the containing block for the
+   fixed-position expanded cell and fight scroll snap). pullToRefresh.ts
+   drives top/opacity/transform inline; the spin keyframes' 51px matches its
+   HOLD_PX. */
+.ptr-ind {
+  position: fixed;
+  left: 50%;
+  z-index: 90; /* over cells, under the expanded overlay (95) and modals (100) */
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+  opacity: 0;
+  transform: translate(-50%, 0);
+  transition:
+    transform 0.22s ease,
+    opacity 0.22s ease;
+  pointer-events: none;
+}
+
+.ptr-ind.armed {
+  border-color: var(--accent);
+}
+
+.ptr-ind.spin {
+  animation: ptr-spin 0.8s linear infinite;
+}
+
+@keyframes ptr-spin {
+  from {
+    transform: translate(-50%, 51px) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, 51px) rotate(360deg);
+  }
+}
+
+.cell-slot {
+  display: flex;
+  min-height: 0;
+  min-width: 0;
+  position: relative; /* anchors the arrange-mode tap target */
+}
+
+/* Empty last-row slot on desktop (non-rectangular count): an invitation,
+   not a hole — tap grows the wall by one and opens the picker */
+.cell-ghost {
+  min-height: 0;
+  min-width: 0;
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 26px;
+  font-weight: 300;
+  cursor: pointer;
+}
+
+.cell-ghost:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: rgba(53, 208, 165, 0.04);
+}
+
+/* Fullscreen-expanded cell: same node, fixed over everything below the
+   modal layer (picker/docs backdrop is 100). Chart autoSize handles the
+   resize; siblings reflow behind the overlay and restore on collapse. */
+.cell-slot.expanded {
+  position: fixed;
+  inset: 0;
+  z-index: 95;
+  background: var(--bg);
+  /* position:fixed escapes .app's safe-area padding (containing block =
+     viewport) — in edge-to-edge installed/landscape modes the header's
+     exit/interval controls must clear the status bar / notch themselves
+     (the opaque bg fills the inset strips cleanly) */
+  padding-top: env(safe-area-inset-top);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.cell-slot.dragging .cell {
+  opacity: 0.45;
+}
+
+.cell-slot.drop-target .cell {
+  border-color: var(--accent);
+}
+
+/* Touch drag-to-swap: the lifted slot rides an inline transform
+   (scroll-compensated) with imperative pointer-events/z-index/transition for
+   the frame-exact bits; these classes carry the visuals only. The pickup
+   must READ as a pickup instantly: the card pops (inline eased scale), gets
+   the accent ring + shadow, and every other cell dims — the iOS-home-screen
+   recipe. */
+.cell-slot.drag-lift {
+  z-index: 60; /* above siblings, below the expanded overlay (95) */
+}
+
+.cell-slot.drag-lift .cell {
+  border-color: var(--accent);
+  box-shadow:
+    0 0 0 1px var(--accent),
+    0 12px 34px rgba(0, 0, 0, 0.6);
+}
+
+.grid.lifting .cell {
+  transition: opacity 0.18s ease;
+}
+
+.grid.lifting .cell-slot:not(.drag-lift) .cell {
+  opacity: 0.55;
+}
+
+/* the hovered swap target stays fully lit — it is the answer to "where
+   will this land", and dimming it would bury the one thing that matters */
+.grid.lifting .cell-slot.drop-target .cell {
+  opacity: 1;
+}
+
+.cell {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  overflow: hidden;
+  container-type: inline-size;
+}
+
+.cell-header {
+  display: flex;
+  align-items: center;
+  /* Wrap, never cut: the name and price are rigid data, so an overflowing
+     header grows a second line instead of clipping either. In practice the
+     dense-cell hover ladder below keeps fine-pointer headers on ONE line at
+     every realistic width — the wrap is only the coarse-pointer /
+     absurd-width backstop, where hiding data would be worse. */
+  flex-wrap: wrap;
+  gap: 2px 7px;
+  min-height: 28px;
+  padding: 0 8px;
+  /* positioning context for the dense-cell hover controls */
+  position: relative;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  overflow: hidden;
+  cursor: grab;
+  /* it's a drag grip / gesture surface — a long-press or slip must never
+     start a text selection (the iOS loupe reads as "entered edit mode") */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.cell-header:active {
+  cursor: grabbing;
+}
+
+.cell-chg {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-dim);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.chg-tag {
+  color: var(--text-dim);
+  font-size: 9px;
+  font-weight: 400;
+  margin-right: 3px;
+  letter-spacing: 0.3px;
+}
+
+.cell-chg.up {
+  color: var(--up);
+}
+
+.cell-chg.down {
+  color: var(--down);
+}
+
+.cell-statsbar {
+  display: flex;
+  /* items that don't fit wrap onto a clipped second line and disappear
+     WHOLE — a mid-glyph "$76." reads as corrupted data */
+  flex-wrap: wrap;
+  column-gap: 10px;
+  row-gap: 15px;
+  line-height: 15px;
+  max-height: 19px;
+  padding: 2px 8px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-dim);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.cell-statsbar .rv-hot {
+  color: #e3b341;
+  font-weight: 600;
+}
+
+.cell-statsbar .up {
+  color: var(--up);
+}
+
+.cell-statsbar .down {
+  color: var(--down);
+}
+
+@container (max-width: 200px) {
+  .cell-statsbar {
+    display: none;
+  }
+}
+
+.cell-market {
+  font-family: var(--mono);
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  /* THE NAME IS DATA and never compresses: rigid at natural width — the
+     header wraps (rule above) rather than squeezing it. max-width 100% stays
+     as the one refuge for a name wider than the whole cell; only then may it
+     ellipsize. */
+  flex-shrink: 0;
+  max-width: 100%;
+}
+
+.cell-market:hover {
+  color: var(--accent);
+}
+
+.kind-badge {
+  font-family: var(--mono);
+  font-size: 9px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+
+.kind-perp {
+  color: #58a6ff;
+  background: rgba(88, 166, 255, 0.12);
+}
+
+.kind-spot {
+  color: #35d0a5;
+  background: rgba(53, 208, 165, 0.12);
+}
+
+.kind-hip3 {
+  color: #e3b341;
+  background: rgba(227, 179, 65, 0.12);
+}
+
+.kind-hip4 {
+  color: #d38aea;
+  background: rgba(211, 138, 234, 0.12);
+}
+
+.cell-price {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  /* price is primary data — bright when neutral, colored on ticks;
+     NEVER shrinks, never truncates (chrome degrades instead) */
+  color: var(--text);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.cell-price.up {
+  color: var(--up);
+}
+
+.cell-price.down {
+  color: var(--down);
+}
+
+.cell-price.stale {
+  opacity: 0.45; /* WS down: last known price, honestly dimmed */
+}
+
+.cell-spacer {
+  flex: 1;
+}
+
+.cell-intervals {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.iv-btn {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 2px 5px;
+  border-radius: 3px;
+  color: var(--text-dim);
+}
+
+.iv-btn:hover {
+  color: var(--text);
+  background: var(--panel-2);
+}
+
+.iv-btn.active {
+  color: var(--accent);
+  background: rgba(53, 208, 165, 0.1);
+}
+
+.cell-pop {
+  font-size: 12px;
+  line-height: 1;
+  color: var(--text-dim);
+  padding: 2px 3px;
+  flex-shrink: 0;
+}
+
+.cell-pop:hover {
+  color: var(--accent);
+}
+
+/* 🔔 price alerts — same dim-glyph recipe as .cell-pop; the wrap only
+   anchors the popover ref (the popover itself is position:fixed because
+   .cell is overflow:hidden). */
+.cell-bell-wrap {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.cell-bell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  color: var(--text-dim);
+  padding: 2px 3px;
+  flex-shrink: 0;
+}
+
+.cell-bell:hover,
+.cell-bell[aria-expanded='true'] {
+  color: var(--accent);
+}
+
+/* armed: this market has at least one alert */
+.cell-bell.has-alerts {
+  color: #f0b90b;
+}
+
+/* The bell hides on narrow cells with NO coarse re-show (unlike ⛶): on a
+   2-col phone wall (~166-180px cells) it would wrap the header to two lines
+   and tax ~34px of chart off half the cells. Alert LINES still draw on small
+   cells, and the fullscreen cell's header is viewport-wide, so it keeps the
+   bell — management is never out of reach. */
+@container (max-width: 260px) {
+  .cell-pop,
+  .cell-bell-wrap {
+    display: none;
+  }
+}
+
+/* ---- alert popover (position comes inline from AlertPopover — fixed,
+   because .cell is overflow:hidden; visuals follow the -pop family) ---- */
+.alert-pop {
+  position: fixed;
+  z-index: 120;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  overflow-y: auto;
+  cursor: default;
+  text-align: left;
+  font-size: 12px;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.alert-pop-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.alert-pop-title {
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.alert-pop-market {
+  margin-left: auto;
+  color: var(--text-dim);
+  font: 11px var(--mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.alert-modes {
+  display: flex;
+  gap: 4px;
+}
+
+.alert-modes button {
+  flex: 1;
+  padding: 4px 6px;
+  font-size: 11.5px;
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.alert-modes button.active {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: rgba(53, 208, 165, 0.08);
+}
+
+.alert-form {
+  display: flex;
+  gap: 6px;
+}
+
+.alert-input {
+  flex: 1;
+  min-width: 0;
+  font: 12px var(--mono);
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 5px 7px;
+}
+
+.alert-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.alert-addbtn {
+  padding: 5px 10px;
+  font-size: 11.5px;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+}
+
+.alert-addbtn:disabled {
+  color: var(--text-dim);
+  border-color: var(--border);
+  cursor: default;
+}
+
+.alert-target {
+  color: var(--text-dim);
+  font: 11px var(--mono);
+}
+
+.alert-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.alert-list li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 0;
+  font: 12px var(--mono);
+  color: var(--text);
+}
+
+.alert-list-dim li {
+  color: var(--text-dim);
+}
+
+.alert-row-main {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+
+.alert-row-coin {
+  color: var(--text-dim);
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.alert-row-pct {
+  color: var(--text-dim);
+  font-size: 10.5px;
+}
+
+.alert-del {
+  color: var(--text-dim);
+  font-size: 14px;
+  line-height: 1;
+  padding: 0 3px;
+  flex-shrink: 0;
+}
+
+.alert-del:hover {
+  color: var(--down);
+}
+
+.alert-others-label {
+  color: var(--text-dim);
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-top: 2px;
+}
+
+.alert-prefs {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+}
+
+.alert-pref {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text);
+  font-size: 11.5px;
+  cursor: pointer;
+}
+
+.alert-pref input {
+  accent-color: var(--accent);
+}
+
+.alert-denied {
+  color: #f0b90b;
+  font-size: 11px;
+}
+
+.alert-hint {
+  color: var(--text-dim);
+  font-size: 10.5px;
+}
+
+.cell-clear {
+  font-size: 14px;
+  line-height: 1;
+  color: var(--text-dim);
+  padding: 2px 4px;
+  flex-shrink: 0;
+}
+
+.cell-clear:hover {
+  color: var(--down);
+}
+
+/* compact interval dropdown — swapped in when the cell gets narrow */
+.cell-iv-select {
+  display: none;
+  /* on a WRAPPED header the control cluster starts a new line — right-align
+     it (single-line headers are unaffected: the spacer already ate the slack,
+     so this auto margin resolves to zero there) */
+  margin-left: auto;
+  font: 11px var(--mono);
+  color: var(--text);
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 1px 2px;
+  flex-shrink: 0;
+}
+
+/* Degradation ladder (all thresholds sized so the WORST-case price —
+   ~11 mono chars — always fits at full size before anything truncates):
+   510 buttons→dropdown · 440 legend→C±% · 320 badge · 300 font step ·
+   260 ⧉/🔔 · 230 24h chg/suffix · 200 statsbar. Phone-width cells have one
+   more rung — the ≤240 block further down drops select/×/▾ and lets the
+   header WRAP so name and price stay whole.
+
+   THE FIRST RUNG IS A FUNCTION OF THE CHIP COUNT — re-measure it whenever
+   INTERVALS changes. With seven chips, measured in English (the binding
+   case — the `Perp` badge is wider than its zh counterpart) with a long
+   HIP-3 name and an 11-char price, the name clips by 3.7px at a 500px cell
+   and comes clean at 505; 510 leaves ~6px of slack. */
+@container (max-width: 510px) {
+  .cell-intervals {
+    display: none;
+  }
+
+  .cell-iv-select {
+    display: block;
+  }
+}
+
+@container (max-width: 440px) {
+  /* full O/H/L/C legend is ~400px at worst-case 11-char prices — degrade to
+     C ±% before it can clip (O/H/L dropped whole, numbers never truncate) */
+  .cell-legend .lg-ohl {
+    display: none;
+  }
+}
+
+@container (max-width: 440px) {
+  /* tighter header gaps buy back ~15px so mid-width cells keep one line */
+  .cell-header {
+    gap: 2px 5px;
+  }
+}
+
+/* ── dense-cell header: ONE line, full data, no truncation. Below ~380px
+   the data row (name+suffix · price · 24h) and the four controls cannot
+   share a line, and a second line is ruled out — so on hover-capable
+   devices the CONTROLS tuck into a hover/focus overlay on the header's
+   right edge (gradient underlay, zero layout shift) while the data keeps
+   the entire line. A bell with ACTIVE alerts stays in-flow: the amber cue
+   is passive information and must not hide. Touch devices keep inline
+   controls (no hover) — the phone rung already handles their tight cells
+   its own way. */
+@media (hover: hover) and (pointer: fine) {
+  @container (max-width: 380px) {
+    /* a bell with ACTIVE alerts or an OPEN popover stays in-flow — the
+       amber cue is passive information, and the popover must not vanish
+       when the pointer moves off the header into it. The :not(:hover)
+       scoping keeps these hide rules from out-ranking the reveal rules
+       below (their :not(:has()) arguments count toward specificity). */
+    .cell-header:not(:hover):not(:focus-within) .cell-iv-select,
+    .cell-header:not(:hover):not(:focus-within)
+      .cell-bell-wrap:not(:has(.has-alerts)):not(:has(.alert-pop)),
+    .cell-header:not(:hover):not(:focus-within) .cell-pop,
+    .cell-header:not(:hover):not(:focus-within) .cell-clear {
+      display: none;
+    }
+    .cell-header:hover .cell-iv-select,
+    .cell-header:focus-within .cell-iv-select {
+      display: block;
+      position: absolute;
+      right: 66px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 3;
+    }
+    /* Centered WITHOUT a transform: the 🔔 popover is position:fixed INSIDE
+       this wrap, and a transformed ancestor becomes the containing block of
+       its fixed descendants — the popover would land inside the overflow-
+       hidden header, open (input focused, aria-expanded) but invisible on
+       every cell ≤380px. The other three ladder controls carry no fixed
+       child and keep their translateY. */
+    .cell-header:hover .cell-bell-wrap,
+    .cell-header:focus-within .cell-bell-wrap {
+      display: inline-flex;
+      align-items: center;
+      position: absolute;
+      right: 44px;
+      top: 0;
+      bottom: 0;
+      z-index: 3;
+    }
+    .cell-header:hover .cell-pop,
+    .cell-header:focus-within .cell-pop {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      position: absolute;
+      right: 24px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 3;
+    }
+    .cell-header:hover .cell-clear,
+    .cell-header:focus-within .cell-clear {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      position: absolute;
+      right: 4px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 3;
+    }
+    /* solid-fading underlay so the revealed controls read as a layer, not
+       as glyphs colliding with the price text beneath them */
+    .cell-header:hover::after,
+    .cell-header:focus-within::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 132px;
+      background: linear-gradient(90deg, transparent, var(--panel) 22px);
+      z-index: 2;
+    }
+  }
+}
+
+@container (max-width: 320px) {
+  /* the pill yields in tiny cells — perp vs spot still reads from the
+     suffix ('-USDC' perp, '/USDC' spot, HL's own convention). */
+  .cell-header .kind-badge {
+    display: none;
+  }
+}
+
+@container (max-width: 300px) {
+  .cell-market,
+  .cell-price {
+    font-size: 11.5px;
+  }
+}
+
+@container (max-width: 230px) {
+  /* the minimal tier: below this even the bare data row can't share a
+     line, so the 24h chip and the suffix yield and the header stays
+     "NAME · price" on one line — the name itself still never truncates. */
+  .cell-chg,
+  .cell-market-suffix {
+    display: none;
+  }
+}
+
+.cell-market-suffix {
+  color: var(--text-dim);
+  font-weight: 400;
+}
+
+.cell-body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+.cell-body-empty {
+  cursor: pointer;
+}
+
+.cell-body-empty:hover .pick-big {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.cell-chart {
+  position: absolute;
+  inset: 0;
+}
+
+/* back-to-now: appears only when the view left the live edge. Sits above
+   the time axis and left of the price axis (axis ≈ 55-70px wide). */
+.goto-now {
+  position: absolute;
+  right: 76px;
+  bottom: 32px;
+  z-index: 3;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid rgba(125, 138, 153, 0.45);
+  border-radius: 50%;
+  background: rgba(13, 17, 23, 0.85);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.75;
+}
+
+.goto-now:hover {
+  opacity: 1;
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+@media (pointer: coarse) {
+  .goto-now {
+    width: 34px;
+    height: 34px;
+    font-size: 17px;
+    opacity: 0.9;
+  }
+}
+
+/* hover OHLC legend — fixed top-left INSIDE the chart (a cursor-following
+   tooltip would occlude the candles in small cells); never hit-tests */
+.cell-legend {
+  display: none;
+  position: absolute;
+  top: 4px;
+  left: 6px;
+  z-index: 3;
+  gap: 8px;
+  pointer-events: none;
+  font: 11px var(--mono);
+  color: var(--text-dim);
+  background: rgba(16, 21, 29, 0.78);
+  border-radius: 3px;
+  padding: 2px 6px;
+  white-space: nowrap;
+}
+
+.cell-legend .lg-c {
+  color: var(--text);
+}
+
+.cell-legend .lg-chg.up {
+  color: var(--up);
+}
+
+.cell-legend .lg-chg.down {
+  color: var(--down);
+}
+
+.cell-overlay {
+  position: absolute;
+  inset: 0;
+  /* above the chart canvases (z 1/2) — without this the overlay paints
+     and hit-tests UNDER them, leaving the retry button unclickable */
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text-dim);
+  background: var(--panel);
+}
+
+.err-text {
+  color: var(--down);
+}
+
+.retry-btn,
+.pick-big {
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 5px 14px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-dim);
+}
+
+.retry-btn:hover,
+.pick-big:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* ─── market picker (Hyperliquid selector clone) ─── */
+
+.picker-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 7, 11, 0.7);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 8vh;
+  z-index: 100;
+}
+
+.picker {
+  width: 800px;
+  max-width: calc(100vw - 32px);
+  height: 540px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
+  overflow: hidden;
+}
+
+/* Dialog panels are tabIndex=-1 focus targets (useModalFocus moves focus in
+   on open). A keyboard-opened dialog would otherwise draw the UA :focus-visible
+   ring around the whole panel — a full-viewport outline on the fixed list card.
+   Suppressing it on the CONTAINER only (interactive children keep their rings)
+   is the same call .pk-table already makes. */
+.picker:focus,
+.docs:focus,
+.walls-mgr:focus,
+.list-card:focus {
+  outline: none;
+}
+
+.pk-shell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-dim);
+  font-size: 14px;
+}
+
+.pk-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px 0;
+}
+
+.pk-search-wrap {
+  flex: 1;
+  position: relative;
+}
+
+.pk-search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-dim);
+  font-size: 14px;
+  pointer-events: none;
+}
+
+.pk-search {
+  width: 100%;
+  font: 13px var(--sans);
+  color: var(--text);
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  outline: none;
+  padding: 8px 10px 8px 30px;
+}
+
+.pk-search:focus {
+  border-color: var(--text-dim);
+}
+
+/* iOS auto-zoom guard: Safari zooms the whole page when a focused input is
+   under 16px — and stays zoomed after the picker closes. The search box is
+   the main add-a-chart path (picker AND list view), so it gets 16px on
+   touch/narrow. Must sit AFTER .pk-search (its font: shorthand sets size). */
+@media (max-width: 640px), (pointer: coarse) {
+  .pk-search {
+    font-size: 16px;
+  }
+}
+
+.pk-search::placeholder {
+  color: var(--text-dim);
+}
+
+.pk-strict {
+  display: flex;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.pk-strict-btn {
+  font-size: 12px;
+  padding: 7px 16px;
+  color: var(--text-dim);
+}
+
+.pk-strict-btn.on-strict {
+  background: var(--up);
+  color: #06281a;
+  font-weight: 600;
+}
+
+.pk-strict-btn.on-all {
+  background: #e8688a;
+  color: #2b0812;
+  font-weight: 600;
+}
+
+.pk-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 8px 8px 0;
+  overflow-x: auto;
+}
+
+.pk-tab {
+  font-size: 12.5px;
+  padding: 6px 10px 8px;
+  color: var(--text-dim);
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+}
+
+.pk-tab:hover {
+  color: var(--text);
+}
+
+.pk-tab.active {
+  color: var(--text);
+  border-bottom-color: var(--text);
+}
+
+.pk-subtabs {
+  display: flex;
+  gap: 4px;
+  padding: 8px 12px 0;
+}
+
+.pk-subtab {
+  font-size: 11.5px;
+  padding: 3px 10px;
+  border-radius: 4px;
+  color: var(--text-dim);
+}
+
+.pk-subtab:hover {
+  color: var(--text);
+}
+
+.pk-subtab.active {
+  color: var(--accent);
+  background: rgba(53, 208, 165, 0.1);
+}
+
+/* column templates shared by header and rows */
+.pk-grid-perp {
+  display: grid;
+  grid-template-columns: minmax(190px, 2.1fr) 1fr 1.6fr 1fr 1.2fr 1.2fr;
+  gap: 8px;
+}
+
+.pk-grid-spot {
+  display: grid;
+  grid-template-columns: minmax(190px, 2.1fr) 1fr 1.6fr 1.2fr 1.4fr;
+  gap: 8px;
+}
+
+/* Width-tiered column ladder: a value renders whole or its column is not
+   shown — never ellipsized. Priority: Market > Last Price > 24h Change >
+   Volume > rest. nth-child indexes follow the column orders above;
+   .pk-thead and .pk-row share these grid classes, so headers and cells hide
+   together. */
+@media (max-width: 700px) {
+  .pk-grid-perp {
+    grid-template-columns: minmax(150px, 2fr) 1fr 1.2fr 1.2fr;
+  }
+  .pk-grid-perp > :nth-child(4), /* funding */
+  .pk-grid-perp > :nth-child(6) { /* open interest */
+    display: none;
+  }
+  .pk-grid-spot {
+    grid-template-columns: minmax(150px, 2fr) 1fr 1.2fr 1.2fr;
+  }
+  .pk-grid-spot > :nth-child(5) { /* market cap */
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .pk-grid-perp,
+  .pk-grid-spot {
+    grid-template-columns: minmax(110px, 1.8fr) 1fr 1.1fr;
+  }
+  .pk-grid-perp > :nth-child(5), /* volume */
+  .pk-grid-spot > :nth-child(4) { /* volume */
+    display: none;
+  }
+
+  /* Market cell badges (leverage pill, dex tag, SPOT pill) all share the
+     single .pk-pill class in MarketTable.tsx — there is no way to target
+     leverage/dex separately from SPOT without a markup change, which this
+     CSS-only ladder must not make. At this width the market column narrows
+     to a 110px minimum, so the name has to win over all pill chrome; the
+     ★ favorite star (.pk-star) and .pk-name are untouched. */
+  .pk-row .pk-pill {
+    display: none;
+  }
+}
+
+/* Touch devices get no keyboard hints in the picker footer. */
+@media (pointer: coarse) {
+  .pk-hint {
+    display: none;
+  }
+}
+
+.pk-thead {
+  padding: 8px 12px 6px;
+  margin-top: 4px;
+  background: var(--panel-2);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.pk-th {
+  font-size: 11.5px;
+  color: var(--text-dim);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.pk-th:hover {
+  color: var(--text);
+}
+
+.pk-sort-arrow {
+  font-size: 8px;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+
+.pk-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.pk-row {
+  width: 100%;
+  align-items: center;
+  padding: 0 12px;
+  min-height: 27px;
+  font-size: 12.5px;
+  color: var(--text);
+  text-align: left;
+  font-variant-numeric: tabular-nums;
+}
+
+.pk-row.hl {
+  background: var(--panel-2);
+}
+
+.pk-cell {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pk-cell.up {
+  color: var(--up);
+}
+
+.pk-cell.down {
+  color: var(--down);
+}
+
+.pk-market {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pk-star {
+  color: var(--text-dim);
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.pk-star:hover {
+  color: #e3b341;
+}
+
+.pk-star.faved {
+  color: #e3b341;
+}
+
+.pk-name {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pk-name-suffix {
+  color: var(--text-dim);
+  font-weight: 400;
+}
+
+.pk-pill {
+  background: rgba(31, 191, 117, 0.12);
+  color: var(--up);
+  border-radius: 5px;
+  padding: 0 4px;
+  font-size: 10.5px;
+  line-height: 1.7;
+  flex-shrink: 0;
+}
+
+/* HIP-4 question rows */
+.pk-qrow {
+  display: block;
+  padding: 4px 12px 6px;
+  border-bottom: 1px solid rgba(30, 39, 51, 0.5);
+}
+
+.pk-qmain {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12.5px;
+  color: var(--text);
+  padding: 3px 0;
+}
+
+.pk-qchance {
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+  /* % is data — the question name ellipsizes, the number never wraps/clips */
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.pk-qoutcomes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 2px 0 2px 12px;
+}
+
+.pk-qseg {
+  font-size: 11.5px;
+  color: var(--text-dim);
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.pk-qseg:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.pk-foot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 12px;
+  border-top: 1px solid var(--border);
+}
+
+.pk-hint {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.pk-hint b {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-weight: 500;
+  margin-right: 3px;
+}
+
+.pk-loading {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+/* ─── walls manager dialog (save/delete, in place of window.prompt) ─── */
+
+.walls-mgr {
+  width: 320px;
+  max-width: calc(100vw - 32px);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
+}
+
+/* wall-sync pairing code: big, mono, selectable in one tap */
+.sync-code {
+  font: 700 24px var(--mono);
+  letter-spacing: 6px;
+  text-align: center;
+  color: var(--accent);
+  padding: 8px 0;
+  user-select: all;
+  -webkit-user-select: all;
+}
+
+/* watched address: 42 chars in a 320px dialog — small mono, wraps, one-tap select */
+.watch-addr {
+  font: 600 12px var(--mono);
+  text-align: center;
+  color: var(--accent);
+  padding: 6px 0;
+  word-break: break-all;
+  user-select: all;
+  -webkit-user-select: all;
+}
+
+.wm-note {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--text-dim);
+}
+
+.wm-note.sync-err {
+  color: var(--down);
+}
+
+.wm-sep {
+  height: 1px;
+  background: var(--border);
+}
+
+.wm-title {
+  font-weight: 600;
+}
+
+.walls-mgr form {
+  display: flex;
+  gap: 8px;
+}
+
+.wm-input {
+  flex: 1;
+  min-height: 36px;
+  padding: 4px 8px;
+  font: 13px var(--sans);
+  color: var(--text);
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  outline: none;
+}
+
+.wm-input:focus {
+  border-color: var(--text-dim);
+}
+
+.wm-input::placeholder {
+  color: var(--text-dim);
+}
+
+.wm-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 36px;
+}
+
+.wm-none {
+  color: var(--text-dim);
+}
+
+/* ─── docs modal ─── */
+
+.docs {
+  width: 640px;
+  max-width: calc(100vw - 32px);
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
+  overflow: hidden;
+}
+
+/* Feedback dialog — reuses .docs's shell so it inherits the mobile full-bleed
+   sheet rules below, just narrower. */
+.docs.fb {
+  width: 460px;
+}
+
+.fb-body {
+  padding: 14px 16px 16px;
+}
+
+.fb-hint {
+  margin: 0 0 10px;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--text-dim);
+}
+
+.fb-text {
+  width: 100%;
+  min-height: 130px;
+  resize: vertical;
+  box-sizing: border-box;
+  padding: 9px 10px;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+  color: var(--text);
+  font: 13px/1.5 inherit;
+}
+
+.fb-text:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.fb-foot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.fb-count {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.fb-count.near {
+  color: #e3b341;
+}
+
+.fb-err {
+  font-size: 11px;
+  color: var(--down);
+}
+
+.fb-send {
+  margin-left: auto;
+  min-width: 84px;
+  border: none;
+  cursor: pointer;
+}
+
+.fb-send:disabled {
+  opacity: 0.45;
+  cursor: default;
+  filter: none;
+}
+
+.fb-thanks {
+  margin: 26px 0;
+  text-align: center;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.docs-head {
+  display: flex;
+  align-items: center;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.docs-title {
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 1px;
+}
+
+.docs-body {
+  overflow-y: auto;
+  padding: 4px 18px 18px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* the lightweight-charts NOTICE line (Invariant 8) — quiet but present */
+.docs-body .docs-notice {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.docs-body h3 {
+  font-size: 12px;
+  font-family: var(--mono);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 18px 0 6px;
+}
+
+.docs-body p {
+  margin: 0 0 6px;
+  color: var(--text);
+}
+
+.docs-body ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.docs-body li {
+  margin: 3px 0;
+}
+
+.docs-body b {
+  font-family: var(--mono);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.wn-list li {
+  margin-bottom: 6px;
+}
+
+.wn-date {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-right: 4px;
+}
+
+.picker-empty {
+  padding: 24px;
+  text-align: center;
+  color: var(--text-dim);
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+/* Base rule must precede the ≤640px media block below: both selectors have
+   equal specificity, so source order decides — the media rule's display:flex
+   only wins if it comes later. */
+.pk-close {
+  display: none; /* narrow screens only (media query below) */
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  font-size: 22px;
+  color: var(--text-dim);
+}
+
+/* Narrow screens: modals become full-screen sheets (desktop dialogs feel
+   alien on phones). The picker gains a visible close button because a
+   full-bleed sheet has no clickable backdrop. */
+@media (max-width: 640px) {
+  .picker-backdrop {
+    padding-top: 0;
+    align-items: center;
+  }
+  .picker,
+  .docs {
+    width: 100vw;
+    max-width: none;
+    height: 100dvh;
+    max-height: none;
+    border-radius: 0;
+    border: none;
+    /* full-bleed sheets in edge-to-edge modes: the search box / close
+       button must clear the status bar and notch (border-box keeps the
+       100dvh math intact; env() is 0 in ordinary browser contexts) */
+    padding-top: env(safe-area-inset-top);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+  .pk-close {
+    display: flex;
+  }
+  .docs .hint-close {
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+  }
+}
+
+/* Touch targets & type: the fine-pointer sizes (market button 16px, picker
+   rows 27px, star 13px) sit far below the 44px platform floor. The larger
+   sizes apply on any coarse pointer too (not just narrow width) — a wide
+   iPad in landscape is still a finger, not a mouse. */
+@media (max-width: 640px), (pointer: coarse) {
+  .pk-row {
+    min-height: 44px;
+    font-size: 14px;
+  }
+  .pk-thead {
+    min-height: 36px;
+  }
+  .cell-header {
+    min-height: 36px;
+  }
+  .cell-market {
+    font-size: 14px;
+    padding: 6px 4px;
+  }
+  .cell-clear,
+  .cell-pop,
+  .cell-bell {
+    min-width: 32px;
+    min-height: 32px;
+  }
+  /* ≥16px or iOS zooms the page on focus (same rule as .pk-search) */
+  .alert-input {
+    font-size: 16px;
+    min-height: 32px;
+  }
+  .alert-del,
+  .alert-addbtn,
+  .alert-modes button {
+    min-height: 32px;
+  }
+  .alert-del {
+    min-width: 32px;
+  }
+  .topbar .share-btn,
+  .topbar .preset-btn,
+  .topbar .wall-presets,
+  .topbar .tz-select {
+    min-height: 36px;
+  }
+  .docs-body {
+    font-size: 15px;
+    line-height: 1.55;
+  }
+  .cell-iv-select {
+    min-height: 32px;
+    min-width: 40px;
+    margin-right: 6px; /* distance from .cell-clear — a near-miss must not clear the chart */
+  }
+  .walls-mgr .hint-close {
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+  }
+}
+
+/* App-like scroll feel: rows settle into alignment. Width-only (narrow wall
+   layout, not every coarse pointer) and only `proximity` — the snap must
+   never fight chart pan gestures. */
+@media (max-width: 640px) {
+  .grid {
+    scroll-snap-type: y proximity;
+  }
+  .cell-slot {
+    scroll-snap-align: start;
+  }
+}
+
+@media (pointer: coarse) {
+  .pk-star {
+    font-size: 18px;
+    padding: 12px; /* expands the hit area to ~44px */
+    margin: -12px; /* without disturbing layout */
+  }
+}
+
+/* Fullscreen card (mobile INTERACT layer): a single unambiguous close —
+   the destructive × clear has no business here (right next to ✕ it would
+   wipe the chart on a mis-tap); ‹ › page through the wall's charts. */
+.cell-slot.expanded .cell-clear {
+  display: none;
+}
+
+/* ‹ › + chip strip: the fullscreen pager. Absolute inside the fixed
+   expanded slot, above the chart canvases. Rendered only for the WALL's
+   expanded cell (the list card is a solo view — no wall to page through).
+   Known tradeoff: .next overlaps a 44px mid-height band of the price axis —
+   the axis keeps its full height above/below for scale drags; nudging the
+   button inward would float it over the candles instead (worse). */
+.pager-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 5;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--panel); /* fallback: color-mix needs Chrome 111/Safari 16.2 */
+  background: color-mix(in srgb, var(--panel) 82%, transparent);
+  color: var(--text);
+  font: 600 22px/1 var(--mono);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0 2px;
+}
+
+.pager-btn.prev {
+  left: 6px;
+}
+
+.pager-btn.next {
+  right: 6px;
+}
+
+.pager-btn:active {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.pager-chips {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 40px; /* clears the time axis */
+  z-index: 5;
+  display: flex;
+  gap: 4px;
+  max-width: calc(100% - 24px);
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 4px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--panel); /* fallback: color-mix needs Chrome 111/Safari 16.2 */
+  background: color-mix(in srgb, var(--panel) 82%, transparent);
+}
+
+.pager-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.pager-chip {
+  flex-shrink: 0;
+  max-width: 12ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font: 600 11px/1 var(--mono);
+  color: var(--text);
+  opacity: 0.72;
+  padding: 13px 12px; /* ≥37px tall — the project's coarse touch floor */
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+
+.pager-chip.active {
+  opacity: 1;
+  color: var(--accent);
+  border-color: var(--accent);
+  background: transparent; /* fallback: color-mix needs Chrome 111/Safari 16.2 */
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+/* the » back-to-now button must clear the chip strip (strip spans ~40-87px
+   from the bottom; at its default 32px » would be buried under it) */
+.cell-slot.pager .goto-now {
+  bottom: 96px;
+}
+
+/* the labeled exit is the card's single control — unmissable, unambiguous */
+.cell-exit {
+  font: 600 12px var(--mono);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 0 12px;
+  min-height: 36px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.cell-exit:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* Touch devices: ⛶ expand is the primary look-closer affordance on phones —
+   restore it in the 150-260px band the degradation ladder hides ⧉ in
+   (default 2-col phone cells are ~180px). Below 150px (3-col phones) there
+   is genuinely no header room; expand via the 1/2-column setting instead. */
+@media (pointer: coarse) {
+  @container (min-width: 150px) {
+    .cell-header .cell-pop {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+}
+
+/* Touch devices behave like an APP, not a document: no system text
+   selection / copy callout anywhere near the wall — a long-press means
+   arrange, never "Copy". Deliberate reading/copying surfaces opt back in. */
+@media (pointer: coarse) {
+  body {
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  input,
+  textarea,
+  .docs-body {
+    user-select: text;
+    -webkit-user-select: text;
+  }
+
+  .sync-code {
+    user-select: all;
+    -webkit-user-select: all;
+  }
+}
+
+/* Coarse-pointer titles: the symbol IS the identity — give it the whole
+   header before anything else. The quote/venue tail (-USDC, /USDC) is
+   redundant on phones (the kind badge already names the venue), so it drops
+   at 480px, much earlier than the degradation ladder's 230px; only
+   sentence-length HIP-4 names may wrap to two clamped lines (header grows
+   just for them, chart gives up ~16px). */
+@media (pointer: coarse) {
+  .cell-header {
+    height: auto; /* min-height 36px above keeps the one-line floor */
+  }
+  .cell-market {
+    max-width: none;
+  }
+  .cell-market.long-name {
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    line-height: 1.2;
+    text-align: left;
+  }
+  .cell-header,
+  .cell-header button,
+  .cell-header select {
+    touch-action: manipulation; /* no 300ms double-tap wait, no zoom on the grip */
+  }
+  .cell {
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+  }
+  /* × gets a ~44px effective hit area without layout shift; never expands
+     LEFT toward the interval select (its margin-right exists so a near-miss
+     can't clear the chart) */
+  .cell-clear {
+    position: relative;
+  }
+  .cell-clear::after {
+    content: '';
+    position: absolute;
+    inset: -6px -8px -6px 0;
+  }
+  @container (max-width: 480px) {
+    .cell-market-suffix {
+      display: none;
+    }
+  }
+}
+
+/* ≤240px (2/3-col phones, and phone-width windows on any pointer — the
+   width, not the pointer, is what makes the header PHYSICALLY unable to
+   hold name+price+select+⛶+×: chrome alone is ~200px against ~170
+   available, so ⛶ would render clipped and × sit fully off-screen).
+   Priority: symbol > price > ⛶ expand > per-cell interval (retime from the
+   topbar, or expand the cell — its fullscreen header has the select back)
+   > × clear (1-col and desktop keep it). The LAST rung is a wrap, not a cut
+   (product rule: data never visibly truncates): the ▾ caret drops, the name
+   refuses to shrink, and a price that no longer fits beside it moves WHOLE
+   onto a second header line — the header grows one row and the chart pays
+   ~16px, which beats cutting the name to "HYP…". */
+@media (max-width: 640px), (pointer: coarse) {
+  @container (max-width: 240px) {
+    .cell-header {
+      flex-wrap: wrap;
+      height: auto; /* the width branch still carries the base 28px height */
+      gap: 5px;
+      padding: 0 6px;
+    }
+    .cell-iv-select,
+    .cell-clear,
+    .cell-caret {
+      display: none;
+    }
+    /* tiny phone cells: the base name is the load-bearing info, so the
+       suffix goes (fine-pointer cells in wider windows keep it down to the
+       230px rung) */
+    .cell-market-suffix {
+      display: none;
+    }
+    /* max-width 100% is the refuge for a name wider than the whole cell:
+       only then may it ellipsize. HIP-4 free text keeps its own 2-line
+       clamp (coarse-pointer titles above) instead of this no-shrink rule. */
+    .cell-market:not(.long-name) {
+      flex-shrink: 0;
+      max-width: 100%;
+    }
+    .cell-pop {
+      margin-left: auto; /* ⛶ stays right-aligned when it wraps below the name */
+    }
+  }
+}
+
+/* Re-enable the ≤300px font step that the 14px touch-target rule above
+   shadows (equal specificity, so the later rule wins) — slightly larger
+   than the fine-pointer 11.5px step for finger-distance legibility. */
+@media (max-width: 640px), (pointer: coarse) {
+  @container (max-width: 300px) {
+    .cell-market {
+      font-size: 12.5px;
+    }
+  }
+}
+
+/* ─── arrange mode (touch reorder: tap two charts to swap) ─── */
+
+.arrange-target {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  background: rgba(10, 14, 20, 0.15); /* faint veil says "mode active" */
+  border-radius: 5px;
+}
+
+.cell-slot.drop-target .arrange-target {
+  background: rgba(53, 208, 165, 0.1);
+}
+
+.arrange-bar {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  z-index: 96;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 6px 6px 14px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 13px;
+  white-space: nowrap;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+}
+
+/* ─── wall/list view toggle + list view ─── */
+
+.view-toggle {
+  display: inline-flex;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+/* The wall stays mounted under the list (charts quiesce at 0×0, WS subs stay
+   warm, switch-back is instant) — see the comment at the <main> render. */
+.grid.view-hidden {
+  display: none;
+}
+
+.list-view {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+}
+
+/* ─── positions view (the third top-level tab) ─── */
+
+.pos-view {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  background: var(--bg);
+  padding: 12px 16px 40px;
+}
+
+.pv-intro {
+  max-width: 440px;
+  margin: 56px auto 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pv-add {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin: 4px 0 10px;
+  max-width: 640px;
+}
+
+.pv-add .wm-input {
+  flex: 1;
+  min-width: 170px;
+}
+
+.pv-book {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding-bottom: 10px;
+}
+
+.pv-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 2px 8px;
+  background: var(--panel);
+  font: 12px var(--mono);
+  color: var(--text-dim);
+}
+
+.pv-chip.active {
+  border-color: var(--accent);
+}
+
+.pv-chip-name {
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  padding: 2px;
+  white-space: nowrap;
+}
+
+.pv-chip.active .pv-chip-name {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.pv-chip-act {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  font: 11px var(--mono);
+  padding: 0 2px;
+}
+
+.pv-chip-act:hover {
+  color: var(--text);
+}
+
+.pv-chip-add,
+.pv-chip-off {
+  cursor: pointer;
+}
+
+.pv-chip-edit .wm-input {
+  width: 150px;
+}
+
+.pv-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  align-items: center;
+  font: 12px var(--mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-dim);
+  padding: 6px 0 12px;
+}
+
+.pv-summary b {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.pv-summary .up b {
+  color: var(--up);
+}
+
+.pv-summary .down b {
+  color: var(--down);
+}
+
+.pv-addr {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.pv-addr-raw {
+  color: var(--text-dim);
+  font-weight: 400;
+}
+
+/* HL-style account sub-tabs: Positions | Balances | Open orders */
+.pv-tabs {
+  display: flex;
+  gap: 2px;
+  border-bottom: 1px solid var(--border);
+  margin: 4px 0 10px;
+}
+
+.pv-tab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-dim);
+  font: 12px var(--mono);
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.pv-tab.active {
+  color: var(--text);
+  border-bottom-color: var(--accent);
+}
+
+.pv-tab-n {
+  font-size: 10px;
+  opacity: 0.7;
+}
+
+/* wide tables scroll inside their own container — the page never scrolls
+   sideways (product rule: numbers don't clip) */
+.pv-table {
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  overflow-x: auto;
+}
+
+.pv-row {
+  display: grid;
+  gap: 10px;
+  padding: 5px 10px;
+  font: 12px var(--mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
+  min-width: fit-content;
+}
+
+.pv-row:last-child {
+  border-bottom: none;
+}
+
+/* column sets mirror HL's account tables */
+.pv-positions .pv-row {
+  grid-template-columns:
+    minmax(96px, 1.2fr) 74px 96px 96px 104px 104px 104px 150px 88px 96px;
+}
+
+.pv-balances .pv-row {
+  grid-template-columns: minmax(90px, 1fr) 130px 130px 110px 150px;
+}
+
+.pv-orders .pv-row {
+  grid-template-columns:
+    84px 130px minmax(90px, 1fr) 44px 96px 96px 100px 110px minmax(90px, 1fr);
+}
+
+.pv-head {
+  color: var(--text-dim);
+  font-size: 11px;
+  background: var(--panel);
+}
+
+.pv-row .num {
+  text-align: right;
+}
+
+.pv-row .up {
+  color: var(--up);
+}
+
+.pv-row .down {
+  color: var(--down);
+}
+
+.pv-coin {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.pv-note {
+  padding: 6px 0;
+}
+
+/* The table core (MarketTable's root div, not the picker's modal panel) is
+   a flex column in both hosts, or .pk-list can't scroll. */
+.pk-table {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  outline: none;
+}
+
+.list-shell {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--text-dim);
+  font-size: 13px;
+}
+
+/* Offscreen rows skip style/layout/paint — the list holds up to ~950 live
+   rows; harmless no-op on engines without content-visibility. */
+.lt .pk-row {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 28px;
+}
+
+/* rows open a chart card — the picker's rows fill a cell and don't need
+   this. :not(.pk-qrow): outcome QUESTION rows are display:block, where the
+   pseudo-item would render as a stray glyph instead of filling a grid track */
+.lt .pk-row:not(.pk-qrow)::after {
+  content: '›';
+  color: var(--text-dim);
+  opacity: 0.55;
+  font-size: 13px;
+  text-align: right;
+}
+
+/* WS reconnecting: frozen prices must not read as live (matches the wall's
+   stale dim semantics) */
+.mt-stale .pk-list {
+  opacity: 0.55;
+  transition: opacity 0.3s ease;
+}
+
+/* Search fallback hint: quiet one-liner above rows sourced from outside the
+   active tab (list / formula mode) or from outside Strict (both surfaces) */
+.pk-crosstab {
+  padding: 8px 14px;
+  font-size: 12px;
+  color: var(--text-dim);
+  border-bottom: 1px solid var(--border);
+}
+
+/* List column grids — scan order Market | Last | 24h% | Trend | Volume | OI
+   | Funding plus a trailing chevron track (the ::after pseudo-item). Same
+   never-truncate ladder discipline as .pk-grid-*: a value renders whole or
+   its column hides. Trend is a glyph: wide shows it beside the dollar
+   columns, ≤700 it REPLACES them (Volume stays the hidden default sort —
+   picker ≤480 precedent), ≤360 it drops back out. */
+.lt-grid-perp {
+  display: grid;
+  grid-template-columns: minmax(190px, 2.1fr) 1fr 1.6fr 1fr 1.2fr 1.2fr 1fr 16px;
+  gap: 8px;
+}
+
+.lt-grid-spot {
+  display: grid;
+  grid-template-columns: minmax(190px, 2.1fr) 1fr 1.6fr 1fr 1.2fr 1.4fr 16px;
+  gap: 8px;
+}
+
+/* the 24h shape glyph: pure SVG polyline, colored by its own direction;
+   fade-in so late blob arrival reads as enhancement, not flicker */
+.lt-spark {
+  display: flex;
+  align-items: center;
+}
+
+.lt-spark-svg {
+  width: 100%;
+  max-width: 72px;
+  height: 18px;
+  opacity: 0;
+  animation: spark-in 0.35s ease forwards;
+}
+
+.lt-spark-svg.up {
+  color: var(--up);
+}
+
+.lt-spark-svg.down {
+  color: var(--down);
+}
+
+@keyframes spark-in {
+  to {
+    opacity: 0.9;
+  }
+}
+
+@media (max-width: 700px) {
+  .lt-grid-perp {
+    grid-template-columns: minmax(150px, 2fr) 1fr 1.2fr 1.2fr 14px;
+  }
+  .lt-grid-perp > :nth-child(5), /* volume */
+  .lt-grid-perp > :nth-child(6), /* open interest */
+  .lt-grid-perp > :nth-child(7) { /* funding */
+    display: none;
+  }
+  .lt-grid-spot {
+    grid-template-columns: minmax(150px, 2fr) 1fr 1.2fr 1.2fr 14px;
+  }
+  .lt-grid-spot > :nth-child(5), /* volume */
+  .lt-grid-spot > :nth-child(6) { /* market cap */
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  /* keep all four scan columns (compact formats are on since 772px);
+     the shared ≤480 .pk-pill rule already drops badge chrome */
+  .lt-grid-perp,
+  .lt-grid-spot {
+    grid-template-columns: minmax(110px, 1.6fr) 1fr 1fr 1fr 12px;
+  }
+
+  /* Long names (SKHYNIX-USDC, BRENTOIL-USDC) would ellipsize in 110px — and
+     data must never truncate. The muted quote suffix is the noise: drop it
+     and the base name renders whole, the same rule the wall's cell titles
+     follow on phones. Tabs disambiguate spot vs perp. */
+  .lt .pk-name-suffix {
+    display: none;
+  }
+}
+
+@media (max-width: 360px) {
+  /* smallest phones: Market | Last | 24h% only */
+  .lt-grid-perp,
+  .lt-grid-spot {
+    grid-template-columns: minmax(105px, 1.6fr) 1fr 1fr 12px;
+  }
+  .lt-grid-perp > :nth-child(4), /* trend glyph */
+  .lt-grid-spot > :nth-child(4) {
+    display: none;
+  }
+}
+
+/* ── list chart card: floating add-to-wall action + toast ── */
+
+.card-actions {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  z-index: 96;
+}
+
+.card-add {
+  font: 600 12px var(--mono);
+  color: var(--accent);
+  background: var(--panel-2);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  padding: 0 16px;
+  min-height: 36px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.card-add:hover {
+  background: rgba(53, 208, 165, 0.12);
+}
+
+.list-toast {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(60px + env(safe-area-inset-bottom, 0px));
+  z-index: 97;
+  padding: 7px 12px;
+  background: rgba(53, 208, 165, 0.12);
+  border: 1px solid rgba(53, 208, 165, 0.4);
+  border-radius: 6px;
+  font-size: 12.5px;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+/* Card paging peek: the target market's name, shown top-center for the
+   260ms throttle window while the chart catches up to a flick. */
+.card-peek {
+  position: absolute;
+  left: 50%;
+  top: 46px;
+  transform: translateX(-50%);
+  z-index: 6;
+  max-width: calc(100% - 96px); /* clears the ‹ › buttons */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--accent);
+  background: var(--panel); /* fallback: color-mix needs Chrome 111/Safari 16.2 */
+  background: color-mix(in srgb, var(--panel) 88%, var(--accent));
+  font: 600 12px/1 var(--mono);
+  color: var(--text);
+  pointer-events: none;
+}
+
+/* Honor reduced-motion. Only DECORATIVE motion is killed (toast slide-in,
+   pull-indicator spinner/slide); drag-to-swap and the pull gesture's inline
+   transforms track the finger directly — input-bound motion is exempt (WCAG
+   C39). Opacity-only fades stay. Zero change otherwise. */
+@media (prefers-reduced-motion: reduce) {
+  .wn-toast {
+    animation: none;
+  }
+  .alert-toast {
+    animation: none;
+  }
+  /* the fired-alert pulse degrades to a static ring for its 1.6s window */
+  .cell.alert-flash-up {
+    animation: none;
+    border-color: var(--up);
+  }
+  .cell.alert-flash-down {
+    animation: none;
+    border-color: var(--down);
+  }
+  .ptr-ind {
+    transition: none;
+  }
+  .ptr-ind.spin {
+    animation: none;
+  }
+}
+
+/* ── formula bar (picker) — hl/formula.ts, MarketTable's formula mode ──
+   Everything below renders only while a formula is being built; the plain
+   picker never carries these classes (the ƒx switch itself excepted). */
+
+/* the ƒx switch inside the search box — the one always-visible deviation
+   from HL's selector, on every device (formula mode is explicit); on phones
+   tapping it must not raise the keyboard */
+.pk-fx {
+  display: flex;
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  min-width: 44px;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  font: italic 600 15px var(--mono);
+  color: var(--text-dim);
+}
+
+.pk-fx[aria-pressed='true'] {
+  color: var(--accent);
+}
+
+.pk-search-wrap.has-fx .pk-search {
+  padding-right: 44px;
+}
+
+/* a typed formula outside formula mode: the empty-result line is the way in */
+.pk-fx-nudge {
+  width: 100%;
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.pk-fx-nudge b {
+  font: italic 600 13px var(--mono);
+  margin-right: 6px;
+}
+
+/* the preview strip: chips per token + the value/reason slot; wraps and
+   grows for long formulas, never scrolls or clips */
+.pk-preview {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px 0;
+  min-height: 40px;
+}
+
+.pk-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.pk-chip {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--mono);
+  font-size: 12.5px;
+}
+
+.pk-chip-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px;
+  min-height: 28px;
+  color: var(--text);
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+}
+
+/* syntax recedes, tickers pop */
+.pk-chip-op .pk-chip-btn,
+.pk-chip-lparen .pk-chip-btn,
+.pk-chip-rparen .pk-chip-btn,
+.pk-chip-num .pk-chip-btn {
+  color: var(--text-dim);
+  background: transparent;
+  border-color: transparent;
+  padding: 4px 3px;
+}
+
+.pk-chip-unresolved .pk-chip-btn,
+.pk-chip-ambiguous .pk-chip-btn {
+  color: #e8688a;
+  border-style: dashed;
+  border-color: #e8688a;
+}
+
+.pk-chip.sel .pk-chip-btn {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.pk-chip-x {
+  min-width: 28px;
+  min-height: 28px;
+  margin-left: 2px;
+  color: var(--text-dim);
+  font-size: 16px;
+}
+
+.pk-chip-ex {
+  color: var(--text-dim);
+  padding: 4px 6px;
+}
+
+.pk-chip-slot {
+  width: 42px;
+  height: 28px;
+  border: 1px dashed var(--border);
+  border-radius: 5px;
+}
+
+.pk-value {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  max-width: 55%;
+}
+
+.pk-value-num {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.pk-reason {
+  font-size: 12px;
+  color: var(--text-dim);
+  text-align: right;
+}
+
+.pk-place {
+  min-width: 36px;
+  min-height: 32px;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  color: var(--accent);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.pk-place:hover {
+  background: var(--accent);
+  color: #06281a;
+}
+
+/* the six operand keys that replace the column header on touch */
+.pk-ops {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+  padding: 8px 10px 6px;
+  margin-top: 4px;
+  background: var(--panel-2);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.pk-op {
+  min-height: 44px;
+  font: 600 18px var(--mono);
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+@media (pointer: coarse) {
+  .pk-chip-btn {
+    min-height: 36px;
+  }
+  .pk-chip-x {
+    min-width: 36px;
+    min-height: 36px;
+  }
+  .pk-place {
+    min-width: 44px;
+    min-height: 40px;
+  }
+}
+
+/* ── formula cells — the cell header/stats bar of a `=…` market ── */
+
+/* neutral: a derived thing, not a fifth market class */
+.kind-formula {
+  color: var(--text-dim);
+  background: rgba(139, 148, 158, 0.14);
+  font-style: italic;
+}
+
+/* NEVER-TRUNCATE for formula names: the name wraps at operator boundaries
+   (a <wbr> follows every operator glyph and every '(' in the markup) and
+   grows the header — never an ellipsis, never a line clamp. overflow-wrap
+   is a backstop for a single ticker wider than the whole cell (none exist
+   today). */
+.cell-market.formula {
+  white-space: normal;
+  text-overflow: clip;
+  overflow-wrap: anywhere;
+  line-height: 1.25;
+  text-align: left;
+}
+
+/* syntax recedes, tickers pop */
+.cell-market .fx-op {
+  color: var(--text-dim);
+  font-weight: 400;
+  padding: 0 1px;
+}
+
+@media (pointer: coarse) {
+  /* the coarse ellipsis refuge (max-width:100% + nowrap above) is exactly
+     what must not apply to a formula name */
+  .cell-market.formula:not(.long-name) {
+    white-space: normal;
+    max-width: 100%;
+  }
+}
+
+/* per-leg 24h chips ride LAST in the stats bar so a narrow bar sheds them
+   first, whole (the bar's own wrap-and-clip rule) */
+.cell-statsbar .fx-leg {
+  color: var(--text-dim);
+}
+
+/* narrow phones: the preview strip stacks the chips over the value slot
+   instead of squeezing the examples into two ragged columns */
+@media (max-width: 480px) {
+  .pk-preview {
+    flex-wrap: wrap;
+  }
+  .pk-value {
+    max-width: 100%;
+    margin-left: auto;
+  }
+}

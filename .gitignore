@@ -1,0 +1,34 @@
+# Dependencies and build output
+node_modules
+dist
+dist-ssr
+.wrangler
+
+# Local environment and secrets (wrangler dev reads .dev.vars)
+.env
+.dev.vars*
+*.local
+
+# Agent and editor tooling
+.claude/
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Written by scripts/api-canary.mjs, read by .github/workflows/canary.yml
+canary-alerts.txt

@@ -1,0 +1,49 @@
+{
+  "name": "purrwall",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Free multi-chart price wall for every Hyperliquid market",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lvdou26/purrwall.git"
+  },
+  "homepage": "https://purrwall.xyz",
+  "bugs": {
+    "url": "https://github.com/lvdou26/purrwall/issues"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build && node scripts/release-check.mjs",
+    "lint": "oxlint",
+    "perf": "node scripts/perf-smoke.mjs",
+    "preview": "vite preview",
+    "feedback": "node scripts/feedback.mjs",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "lightweight-charts": "^5.2.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.2",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.3",
+    "oxlint": "^1.71.0",
+    "puppeteer-core": "^25.3.0",
+    "typescript": "~6.0.2",
+    "vite": "^8.1.1",
+    "vitest": "^5.0.0",
+    "wrangler": "4.138.0"
+  },
+  "overrides": {
+    "postcss": "^8.5.28",
+    "nanoid": "^3.3.19"
+  }
+}

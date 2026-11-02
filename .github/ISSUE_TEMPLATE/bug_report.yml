@@ -1,0 +1,27 @@
+name: Bug report
+description: Something on purrwall.xyz does not work as expected
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: input
+    id: link
+    attributes:
+      label: Wall link
+      description: Copy it with the share button in the top bar; it reproduces your layout. A saved wall's link also carries the wall's name.
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and device
+      placeholder: e.g. Chrome on macOS, Safari on iPhone
+    validations:
+      required: true
+  - type: textarea
+    id: console
+    attributes:
+      label: Console errors (optional)
+      render: text

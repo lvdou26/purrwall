@@ -1,0 +1,50 @@
+:root {
+  --bg: #0a0e14;
+  --panel: #10151d;
+  --panel-2: #161d27;
+  --border: #1e2733;
+  --text: #e8eef4;
+  --text-dim: #8b99aa;
+  --accent: #35d0a5;
+  --up: #1fbf75;
+  --down: #f6465d;
+
+  --sans: -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  --mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  color-scheme: dark;
+  font: 13px/1.4 var(--sans);
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+a {
+  color: var(--text-dim);
+}
+
+a:hover {
+  color: var(--accent);
+}

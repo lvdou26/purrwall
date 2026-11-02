@@ -1,0 +1,14 @@
+Purrwall
+Copyright (c) 2026 Purrwall contributors
+
+This product includes TradingView Lightweight Charts™
+Copyright (c) 2025 TradingView, Inc. https://www.tradingview.com/
+Licensed under the Apache License, Version 2.0. Pages that render charts
+display a link to TradingView as that license requires; keep it if you
+redistribute or host a modified copy.
+
+This product includes the QR Code generator library by Project Nayuki
+(src/lib/qrcodegen.js), MIT License,
+https://www.nayuki.io/page/qr-code-generator-library
+
+Market data: Hyperliquid public API (https://app.hyperliquid.xyz).

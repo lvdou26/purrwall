@@ -1,0 +1,232 @@
+name: HL API canary
+
+on:
+  schedule:
+    # twice daily: halves the window in which a fresh HL listing can show a
+    # stale display name (or a stale Strict / hidden-token list) before
+    # sync-spot-overrides picks the change up
+    - cron: '17 3 * * *'
+    - cron: '17 15 * * *'
+  workflow_dispatch:
+
+# One run at a time: two overlapping runs (a late cron + a manual dispatch)
+# would both sync, both commit, and the second would conflict in the rebase
+# on syncedAt / the snapshot. Queue, never cancel: a run cancelled after its
+# snapshot is cached but before its alert issue is filed loses its set-change
+# alerts for good, because the next run's baseline already contains the
+# change.
+concurrency:
+  group: hl-canary
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  canary:
+    # Forks skip this job: it pushes to main and files issues.
+    if: github.repository_owner_id == '277485554'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # The drift baseline (last run's snapshot) lives in the Actions cache
+      # between commits, NOT in a commit per run: every push to main is a
+      # Workers Builds deploy, and deploying byte-identical code still fires
+      # the "↻ new version" pill on every open wall and turns the next phone
+      # pull-to-refresh into a full reload. The checked-in copy is the
+      # fallback baseline and is refreshed whenever a real change commits.
+      - name: Restore the previous run's snapshot
+        uses: actions/cache/restore@v4
+        with:
+          path: scripts/api-snapshot.json
+          key: api-snapshot-${{ github.run_id }}
+          restore-keys: |
+            api-snapshot-
+      - name: Run canary
+        id: canary
+        run: node scripts/api-canary.mjs
+      # success-only: api-canary.mjs writes the file before it exits 1, and a
+      # failing run's snapshot must not become the drift baseline — a dex or
+      # category change landing inside a failure window would never alert.
+      - name: Keep this run's snapshot for the next run
+        uses: actions/cache/save@v4
+        with:
+          path: scripts/api-snapshot.json
+          key: api-snapshot-${{ github.run_id }}
+      # The spot-list sync does not depend on the API invariants above, so it
+      # runs even when the canary failed: an unrelated failure must not hold
+      # back a rename or allowlist update. Exit contract: 0 = every list validated; 2 = at least one
+      # failed, the lists that validated were still written, and stderr holds
+      # one line per failure (the issue body below). "updated" comes from git,
+      # not from the exit code: a partial update is still an update.
+      - name: Sync HL spot lists (display names / Strict allowlist / hidden tokens)
+        id: sync
+        if: ${{ !cancelled() }}
+        run: |
+          set +e
+          node scripts/sync-spot-overrides.mjs 2> sync-errors.txt
+          code=$?
+          set -e
+          if [ -s sync-errors.txt ]; then cat sync-errors.txt; fi
+          if ! git diff --quiet -- src/lib/hl/spotOverrides.json src/lib/hl/spotSelector.json; then
+            echo "updated=true" >> "$GITHUB_OUTPUT"
+          fi
+          case "$code" in
+            0) ;;
+            2) echo "failed=true" >> "$GITHUB_OUTPUT" ;;
+            *) exit "$code" ;;
+          esac
+      # Only a run on main may rebase onto main, push, deploy or touch main's
+      # issues; a `workflow_dispatch --ref some-branch` gets the result printed.
+      - name: Show the sync result (not main — nothing is committed, deployed or filed)
+        if: ${{ !cancelled() && github.ref != 'refs/heads/main' }}
+        run: |
+          echo "Ref $GITHUB_REF is not refs/heads/main — showing the sync result only."
+          git diff -- src/lib/hl/spotOverrides.json src/lib/hl/spotSelector.json
+          if [ -s sync-errors.txt ]; then
+            echo "--- sync failures:"
+            cat sync-errors.txt
+          fi
+      - name: Commit synced spot lists (the one change that must reach prod)
+        id: commit
+        if: ${{ !cancelled() && github.ref == 'refs/heads/main' && steps.sync.outcome == 'success' && steps.sync.outputs.updated == 'true' }}
+        env:
+          CANARY_OK: ${{ steps.canary.outcome == 'success' }}
+          MSG: 'canary: sync HL spot lists (display names / Strict allowlist / hidden tokens)'
+        run: |
+          # This pushes with GITHUB_TOKEN, so main's ruleset must not require
+          # status checks: a required check rejects this push (GH013). Protect
+          # main against deletion and force-pushes only, or give this step a
+          # token that may bypass the ruleset.
+          lists=(src/lib/hl/spotOverrides.json src/lib/hl/spotSelector.json)
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "${lists[@]}"
+          # The snapshot rides along so the checked-in baseline stays current,
+          # but only from a GREEN canary run (a failing run's snapshot must not
+          # become the baseline, see the cache steps above), and a
+          # snapshot-only diff never commits: this step runs only when a spot
+          # list changed.
+          if [ "$CANARY_OK" = "true" ]; then git add scripts/api-snapshot.json; fi
+          if git diff --cached --quiet; then
+            echo "nothing staged — nothing to push"
+            exit 0
+          fi
+          git commit -m "$MSG"
+          # A human push landing mid-run must not fail the push (that would
+          # file a misleading "HL API canary FAILED"). --autostash carries a
+          # red run's unstaged snapshot across the rebase.
+          if ! git pull --rebase --autostash origin main; then
+            # Never hand-merge a list file: drop this run's commit, take main
+            # as it is, re-derive the lists on top of it, and commit only if
+            # they still differ (the snapshot baseline sits this one out).
+            echo "::warning::rebase onto origin/main failed — re-syncing on top of the new main"
+            git rebase --abort || true
+            git fetch origin +refs/heads/main:refs/remotes/origin/main
+            git reset --hard origin/main
+            set +e
+            node scripts/sync-spot-overrides.mjs 2> sync-errors-resync.txt
+            code=$?
+            set -e
+            if [ -s sync-errors-resync.txt ]; then cat sync-errors-resync.txt; fi
+            case "$code" in
+              0) ;;
+              2)
+                echo "resync_failed=true" >> "$GITHUB_OUTPUT"
+                cat sync-errors-resync.txt >> sync-errors.txt
+                ;;
+              *) exit "$code" ;;
+            esac
+            if git diff --quiet -- "${lists[@]}"; then
+              echo "origin/main already carries these lists — nothing to push"
+              exit 0
+            fi
+            git add "${lists[@]}"
+            git commit -m "$MSG"
+          fi
+          # Workers Builds deploys every push to main.
+          git push origin HEAD:main
+      # Issues dedupe against what is already open, so a standing alert or a
+      # broken sync is filed once instead of twice a day.
+      # Gated on the CANARY's own outcome, not the job's: the cache step has
+      # already advanced the baseline, so skipping this step after a later
+      # commit or push failure would drop these alert lines for good.
+      - name: Open issue on alerts (display-map drift, new dexs, new categories)
+        if: ${{ !cancelled() && steps.canary.outcome == 'success' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ -s canary-alerts.txt ]; then
+            # Alert lines quote names that market deployers choose, so they go
+            # into the issue inside a code block (backticks stripped, so no
+            # line can close it): no mentions, no links.
+            tr -d '`' < canary-alerts.txt > safe-alerts.txt
+            # Per-line dedupe: file only the alert lines no open issue already
+            # carries (a lookup failure yields an empty list → everything files;
+            # a duplicate beats a lost alert).
+            gh issue list --state open --author 'app/github-actions' --search '"HL API alert" in:title' --limit 50 --json body \
+              --jq '.[].body' > open-alerts.txt || : > open-alerts.txt
+            if grep -vxF -f open-alerts.txt safe-alerts.txt > new-alerts.txt; then
+              {
+                printf 'The canary flagged alert-worthy Hyperliquid changes (benign growth stays in the Actions-cached snapshot; the checked-in scripts/api-snapshot.json refreshes only when a spot-list sync commits):\n\n```text\n'
+                cat new-alerts.txt
+                printf '```\n\nSee docs/architecture.md (Hyperliquid API notes, Invariants).\n'
+              } > issue-body.md
+              gh issue create --title "HL API alert ($(date -u +%F))" --body-file issue-body.md
+            else
+              echo "every alert line is already open, not re-filing"
+            fi
+          fi
+      # The sync's stderr is the issue body: one line per list that failed
+      # (plus the re-sync's, if the commit step had to re-derive on a new
+      # main), in a code block for the same reason as the alerts.
+      - name: Open issue on spot-list sync failure
+        if: ${{ !cancelled() && github.ref == 'refs/heads/main' && (steps.sync.outputs.failed == 'true' || steps.commit.outputs.resync_failed == 'true') }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # fail OPEN: a lookup error must file rather than silently skip
+          n=$(gh issue list --state open --author 'app/github-actions' --search '"HL spot-list sync FAILED" in:title' --limit 1 --json number --jq 'length' || echo 0)
+          if [ "${n:-0}" != "0" ]; then
+            echo "sync failure already filed, not re-filing"
+            exit 0
+          fi
+          {
+            printf '%s\n\n' "scripts/sync-spot-overrides.mjs could not extract or validate every spot list from HL's bundle. The lists that validated were still synced; each failed one keeps its last-known value in production (src/lib/hl/spotOverrides.json / spotSelector.json). Failures:"
+            printf '```text\n'
+            tr -d '`' < sync-errors.txt
+            printf '```\n'
+            printf '\n%s\n' "Check the workflow logs. If HL restructured its bundle, re-derive the regex in scripts/lib/hlBundleLists.mjs (its header records the last known layout). This issue closes itself on the first run that syncs every list."
+          } > sync-issue.md
+          gh issue create --title "HL spot-list sync FAILED ($(date -u +%F))" --body-file sync-issue.md
+      # "Resolved" means every list validated AND the result landed: a sync
+      # whose commit step failed is not resolved.
+      - name: Close spot-list sync issues once every list syncs again
+        if: ${{ !cancelled() && github.ref == 'refs/heads/main' && steps.sync.outcome == 'success' && steps.sync.outputs.failed != 'true' && steps.commit.outcome != 'failure' && steps.commit.outputs.resync_failed != 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          { gh issue list --state open --author 'app/github-actions' --search '"HL spot-list sync FAILED" in:title' --limit 20 --json number --jq '.[].number' || true; } \
+            | while read -r num; do
+            [ -n "$num" ] || continue
+            gh issue close "$num" --comment "Resolved: scripts/sync-spot-overrides.mjs extracted and validated every spot list on $RUN_URL" \
+              || echo "could not close #$num"
+          done
+      - name: Open issue on invariant failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # fail OPEN: a lookup error must file rather than silently skip
+          n=$(gh issue list --state open --author 'app/github-actions' --search '"HL API canary FAILED" in:title' --limit 1 --json number --jq 'length' || echo 0)
+          if [ "${n:-0}" != "0" ]; then
+            echo "canary failure already filed, not re-filing"
+            exit 0
+          fi
+          gh issue create --title "HL API canary FAILED ($(date -u +%F))" \
+            --body "A structural invariant the frontend depends on has broken — check the workflow run logs and fix the data layer. See docs/architecture.md → Hyperliquid API notes."

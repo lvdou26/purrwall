@@ -1,0 +1,53 @@
+// Cloudflare Workers config: static assets serve the Vite build output; the
+// worker script handles /api/sync, /api/feedback, /api/sparks and
+// /api/sparks-ingest. Workers Builds deploys every push to main
+// (`npm run build` + `npx wrangler deploy`); a manual deploy works the same.
+{
+  "name": "purrwall",
+  "main": "worker/index.js",
+  "compatibility_date": "2026-07-01",
+  "routes": [
+    { "pattern": "purrwall.xyz", "custom_domain": true },
+    { "pattern": "www.purrwall.xyz", "custom_domain": true }
+  ],
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application",
+    // SPA fallback intercepts NAVIGATION requests (Sec-Fetch-Mode: navigate)
+    // before the worker; unlisted /api/* POSTs would die with an asset-layer
+    // 405 before the worker ever runs
+    "run_worker_first": ["/api/*"]
+  },
+  // Opt-in wall sync (worker/index.js /api/sync): saved-wall libraries keyed
+  // by an unguessable 8-char code, 60-day idle TTL. A document holds wall
+  // names and market symbols, plus the active watch address and the address
+  // book (≤ 20 addresses with optional names).
+  // SPARKS: the 24h trend-glyph blob (/api/sparks) — public market data
+  // written by the purrwall-data pipeline via the token-gated ingest
+  // (SPARKS_TOKEN secret); the one KV key that is not user state.
+  // Namespace ids are not secrets: they are unusable without an account-scoped
+  // API token. A fork deploys against its own namespaces.
+  "kv_namespaces": [
+    { "binding": "SYNC", "id": "ebff2d2c344d4f04bf1fee0973b128db" },
+    { "binding": "SPARKS", "id": "24579bd0c0574b01977a8d6bc570d9ee" },
+    // User feedback (worker/index.js /api/feedback). Its OWN namespace, not a
+    // prefix inside SYNC: free text and saved-wall libraries have different
+    // lifetimes (90-day fixed vs 60-day idle) and different blast radii, and
+    // keeping them apart means either can be purged without touching the other.
+    // Records carry text + timestamp ONLY.
+    { "binding": "FEEDBACK", "id": "ed77293d57ee405987fa9f4f84e5b97a" }
+  ],
+  // Feedback notifications (worker/index.js /api/feedback → mailFeedback).
+  // `destination_address` is the enforcement, not a default: Email Routing
+  // refuses any other recipient, so an unauthenticated endpoint that composes
+  // email can never become a spam relay. FEEDBACK_TO must match it — the
+  // binding decides what is ALLOWED, this var is what the code addresses.
+  // Requires the zone's Email Routing (which adds MX + SPF records) and the
+  // destination verified once by clicking Cloudflare's confirmation mail.
+  "send_email": [{ "name": "MAIL", "destination_address": "purrwall77@gmail.com" }],
+  "vars": {
+    "FEEDBACK_TO": "purrwall77@gmail.com"
+  },
+  // No stored Worker logs.
+  "observability": { "enabled": false }
+}

@@ -1,0 +1,85 @@
+{
+  "perps": {
+    "listed": 234,
+    "active": 178
+  },
+  "hip3Dexs": [
+    "abcd",
+    "cash",
+    "flx",
+    "hyna",
+    "io",
+    "km",
+    "mkts",
+    "para",
+    "vntl",
+    "xyz"
+  ],
+  "spot": {
+    "tokens": 509,
+    "pairs": 337
+  },
+  "outcomes": {
+    "total": 303,
+    "questions": 24,
+    "orphans": 183,
+    "sportsMatches": 0,
+    "undatedSportsMatches": [],
+    "templated": 295,
+    "templates": [
+      "aiModelHeadToHead",
+      "awardCandidate",
+      "awardEntryWins",
+      "awardOther",
+      "awardWinner",
+      "binaryPrice",
+      "binaryPriceExternal",
+      "companyIpoConfirmed",
+      "companyIpoFirstDayMarketCap",
+      "policyRateBucket",
+      "policyRateDecision",
+      "policyRateDecrease",
+      "policyRateIncrease",
+      "policyRateLadder",
+      "policyRateNoChange",
+      "priceTouch",
+      "scalarPrice",
+      "sportsContestDraw2",
+      "sportsContestParticipant2",
+      "sportsContestResult",
+      "sportsContestWinner",
+      "sportsOverUnderMarket",
+      "sportsScalarMarket",
+      "sportsSpread",
+      "sportsTotal",
+      "sportsTournamentNoWinner2",
+      "sportsTournamentParticipant",
+      "sportsTournamentWinner"
+    ],
+    "templateCategories": [
+      "culture",
+      "economics",
+      "price",
+      "sports",
+      "technology"
+    ]
+  },
+  "categories": [
+    "commodities",
+    "crypto",
+    "fx",
+    "indices",
+    "preipo",
+    "rates",
+    "stock",
+    "stocks"
+  ],
+  "spotDisplayMap": {
+    "mismatches": []
+  },
+  "spotSelector": {
+    "strictIds": 54,
+    "gone": [],
+    "pending": []
+  }
+}
