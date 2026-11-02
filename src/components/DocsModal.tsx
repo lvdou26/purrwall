@@ -125,8 +125,11 @@ export function DocsModal({ onClose, marketCount }: { onClose: () => void; marke
 
             <h3>数据</h3>
             <p>
-              价格来自 Hyperliquid 公共 API；图表由 TradingView 开源 Lightweight Charts 渲染。源代码在
-              GitHub。
+              价格来自 Hyperliquid 公共 API；图表由 TradingView 开源 Lightweight Charts 渲染。源代码在{' '}
+              <a href="https://github.com/lvdou26/purrwall" target="_blank" rel="noreferrer">
+                GitHub
+              </a>
+              。
             </p>
             <p className="docs-notice">
               {/* lightweight-charts NOTICE attribution (Invariant 8) — keep verbatim */}
@@ -196,7 +199,11 @@ export function DocsModal({ onClose, marketCount }: { onClose: () => void; marke
             <h3>Data</h3>
             <p>
               Prices come from Hyperliquid's public API. Charts render with TradingView's
-              open-source Lightweight Charts. The source is on GitHub.
+              open-source Lightweight Charts. The source is on{' '}
+              <a href="https://github.com/lvdou26/purrwall" target="_blank" rel="noreferrer">
+                GitHub
+              </a>
+              .
             </p>
             <p className="docs-notice">
               {/* lightweight-charts NOTICE attribution (Invariant 8) — keep verbatim */}
