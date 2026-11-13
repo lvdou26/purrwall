@@ -1,10 +1,10 @@
 {
   "comment": "HL's spot SELECTOR lists, extracted verbatim from its production bundle (Mainnet). `strict`: the picker's Strict allowlist — BASE-token tokenIds (spotMeta.tokens[].tokenId, HL's selector field `spotId`); every pair on a listed base passes Strict. Entries are [tokenId, l1NameAtSync]; the name is documentation only, runtime matches on the exact tokenId. `hiddenBases` / `hiddenQuotes`: tokens HL hides from every selector surface (compared upper-cased against the displayed token name). DO NOT EDIT BY HAND — scripts/sync-spot-overrides.mjs re-scrapes and rewrites this file (canary job).",
   "source": {
-    "strict": "app.hyperliquid.xyz/assets/series-DEqh3vKY.js",
-    "hidden": "app.hyperliquid.xyz/assets/config-BwfAw-xv.js"
+    "strict": "app.hyperliquid.xyz/assets/series-CbFPBCqw.js",
+    "hidden": "app.hyperliquid.xyz/assets/config-BkGHbgaN.js"
   },
-  "syncedAt": "2026-09-25T19:18:23.577Z",
+  "syncedAt": "2026-11-13T10:54:34.713Z",
   "strict": [
     ["0xc1fb593aeffbeb02f85e0308e9956a90", "PURR"],
     ["0xbaf265ef389da684513d98d68edf4eae", "HFUN"],
@@ -61,6 +61,6 @@
     ["0xc03b5b39372b9daa292adc59a8568263", "TREAD"],
     ["0x20b8c9d2f022ffd2aea4f7962b7b1d8b", "ONEAR"]
   ],
-  "hiddenBases": ["XMR1", "FXMR"],
+  "hiddenBases": ["XMR1", "FXMR", "XMR2"],
   "hiddenQuotes": ["USDH"]
 }

@@ -1,7 +1,7 @@
 {
   "perps": {
-    "listed": 234,
-    "active": 178
+    "listed": 235,
+    "active": 179
   },
   "hip3Dexs": [
     "abcd",
@@ -16,16 +16,16 @@
     "xyz"
   ],
   "spot": {
-    "tokens": 509,
-    "pairs": 337
+    "tokens": 516,
+    "pairs": 351
   },
   "outcomes": {
-    "total": 303,
-    "questions": 24,
-    "orphans": 183,
+    "total": 295,
+    "questions": 27,
+    "orphans": 173,
     "sportsMatches": 0,
     "undatedSportsMatches": [],
-    "templated": 295,
+    "templated": 287,
     "templates": [
       "aiModelHeadToHead",
       "awardCandidate",
