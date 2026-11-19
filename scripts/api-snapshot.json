@@ -16,16 +16,16 @@
     "xyz"
   ],
   "spot": {
-    "tokens": 516,
-    "pairs": 351
+    "tokens": 518,
+    "pairs": 353
   },
   "outcomes": {
-    "total": 295,
+    "total": 310,
     "questions": 27,
-    "orphans": 173,
+    "orphans": 188,
     "sportsMatches": 0,
     "undatedSportsMatches": [],
-    "templated": 287,
+    "templated": 302,
     "templates": [
       "aiModelHeadToHead",
       "awardCandidate",
@@ -36,6 +36,9 @@
       "binaryPriceExternal",
       "companyIpoConfirmed",
       "companyIpoFirstDayMarketCap",
+      "companyNextExecutive",
+      "companyNextExecutiveOther",
+      "companyNextExecutivePerson",
       "policyRateBucket",
       "policyRateDecision",
       "policyRateDecrease",

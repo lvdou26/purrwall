@@ -1,10 +1,10 @@
 {
   "comment": "HL's spot SELECTOR lists, extracted verbatim from its production bundle (Mainnet). `strict`: the picker's Strict allowlist — BASE-token tokenIds (spotMeta.tokens[].tokenId, HL's selector field `spotId`); every pair on a listed base passes Strict. Entries are [tokenId, l1NameAtSync]; the name is documentation only, runtime matches on the exact tokenId. `hiddenBases` / `hiddenQuotes`: tokens HL hides from every selector surface (compared upper-cased against the displayed token name). DO NOT EDIT BY HAND — scripts/sync-spot-overrides.mjs re-scrapes and rewrites this file (canary job).",
   "source": {
-    "strict": "app.hyperliquid.xyz/assets/series-CbFPBCqw.js",
-    "hidden": "app.hyperliquid.xyz/assets/config-BkGHbgaN.js"
+    "strict": "app.hyperliquid.xyz/assets/HIP4DisclaimerModal-BKFPUlNW.js",
+    "hidden": "app.hyperliquid.xyz/assets/config-CRZoYvFZ.js"
   },
-  "syncedAt": "2026-11-13T10:54:34.713Z",
+  "syncedAt": "2026-11-19T11:34:02.977Z",
   "strict": [
     ["0xc1fb593aeffbeb02f85e0308e9956a90", "PURR"],
     ["0xbaf265ef389da684513d98d68edf4eae", "HFUN"],
@@ -59,7 +59,18 @@
     ["0x8e3a7531199e3f0d6e616a1f9edae9a3", "NVDAX"],
     ["0xd7721f1acc95fd05516bdc5138ded7bc", "SKHYX"],
     ["0xc03b5b39372b9daa292adc59a8568263", "TREAD"],
-    ["0x20b8c9d2f022ffd2aea4f7962b7b1d8b", "ONEAR"]
+    ["0x20b8c9d2f022ffd2aea4f7962b7b1d8b", "ONEAR"],
+    ["0x21ec4a5bea95b95778597ace250543a5", "EQQQQ"],
+    ["0x7a1d6d9667e95042d67abf9a61bb67bb", "EQSPY"],
+    ["0xfcf10d9a2abb0db07aba1bedffb62508", "EQNVDA"],
+    ["0xdad4f6d7caa2e78c431a61f96feab683", "EQTSLA"],
+    ["0x2c4a311a3e3ecbb71bb802ab3571144e", "EQAAPL"],
+    ["0xb91b6d60d85d9c7d85d2d0d96898612b", "EQGOOG"],
+    ["0x06cc89c2b3ef95ed5ea0eb680b63e056", "EQMETA"],
+    ["0xb1cbb325020d0ee18163f19cd7495105", "EQMSFT"],
+    ["0x0cbd6f054ea7f520aa2a7de9d4d68814", "EQAMZN"],
+    ["0x61c8a247686d0e6e2589b0b3d8a54055", "EQMU"],
+    ["0x112d84b7a42e962197fac264c83a982c", "EQSPCX"]
   ],
   "hiddenBases": ["XMR1", "FXMR", "XMR2"],
   "hiddenQuotes": ["USDH"]
