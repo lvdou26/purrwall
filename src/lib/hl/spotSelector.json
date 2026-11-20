@@ -1,10 +1,10 @@
 {
   "comment": "HL's spot SELECTOR lists, extracted verbatim from its production bundle (Mainnet). `strict`: the picker's Strict allowlist — BASE-token tokenIds (spotMeta.tokens[].tokenId, HL's selector field `spotId`); every pair on a listed base passes Strict. Entries are [tokenId, l1NameAtSync]; the name is documentation only, runtime matches on the exact tokenId. `hiddenBases` / `hiddenQuotes`: tokens HL hides from every selector surface (compared upper-cased against the displayed token name). DO NOT EDIT BY HAND — scripts/sync-spot-overrides.mjs re-scrapes and rewrites this file (canary job).",
   "source": {
-    "strict": "app.hyperliquid.xyz/assets/HIP4DisclaimerModal-BKFPUlNW.js",
-    "hidden": "app.hyperliquid.xyz/assets/config-CRZoYvFZ.js"
+    "strict": "app.hyperliquid.xyz/assets/HIP4DisclaimerModal-D-OprJ7W.js",
+    "hidden": "app.hyperliquid.xyz/assets/config-yGtOi1px.js"
   },
-  "syncedAt": "2026-11-19T11:34:02.977Z",
+  "syncedAt": "2026-11-20T11:30:25.533Z",
   "strict": [
     ["0xc1fb593aeffbeb02f85e0308e9956a90", "PURR"],
     ["0xbaf265ef389da684513d98d68edf4eae", "HFUN"],
@@ -70,7 +70,8 @@
     ["0xb1cbb325020d0ee18163f19cd7495105", "EQMSFT"],
     ["0x0cbd6f054ea7f520aa2a7de9d4d68814", "EQAMZN"],
     ["0x61c8a247686d0e6e2589b0b3d8a54055", "EQMU"],
-    ["0x112d84b7a42e962197fac264c83a982c", "EQSPCX"]
+    ["0x112d84b7a42e962197fac264c83a982c", "EQSPCX"],
+    ["0x1247a62c5c066fe47b0ee8db7b1b9136", "EQANT"]
   ],
   "hiddenBases": ["XMR1", "FXMR", "XMR2"],
   "hiddenQuotes": ["USDH"]

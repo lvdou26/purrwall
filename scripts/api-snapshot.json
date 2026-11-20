@@ -16,16 +16,16 @@
     "xyz"
   ],
   "spot": {
-    "tokens": 518,
-    "pairs": 353
+    "tokens": 519,
+    "pairs": 354
   },
   "outcomes": {
-    "total": 310,
+    "total": 320,
     "questions": 27,
-    "orphans": 188,
+    "orphans": 198,
     "sportsMatches": 0,
     "undatedSportsMatches": [],
-    "templated": 302,
+    "templated": 312,
     "templates": [
       "aiModelHeadToHead",
       "awardCandidate",
@@ -81,7 +81,7 @@
     "mismatches": []
   },
   "spotSelector": {
-    "strictIds": 54,
+    "strictIds": 65,
     "gone": [],
     "pending": []
   }
