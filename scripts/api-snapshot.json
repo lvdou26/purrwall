@@ -20,12 +20,12 @@
     "pairs": 356
   },
   "outcomes": {
-    "total": 301,
-    "questions": 32,
-    "orphans": 159,
+    "total": 297,
+    "questions": 24,
+    "orphans": 187,
     "sportsMatches": 0,
     "undatedSportsMatches": [],
-    "templated": 293,
+    "templated": 289,
     "templates": [
       "aiModelHeadToHead",
       "awardCandidate",
